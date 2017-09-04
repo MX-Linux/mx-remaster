@@ -24,4 +24,7 @@ restore=/live/etc/init.d/live-restore-services
 # Automatically switch to vt2 when fdb+ cheat is used
 egrep -q "(^| )fdb\+( |$)" /proc/cmdline && chvt 2
 
+#make sure an apt cache archive partial folder exists for apt-notifier
+[ -d /var/cache/apt/archives/partial ] || mkdir -p /var/cache/apt/archives/partial 2>/dev/null
+
 exit 0
