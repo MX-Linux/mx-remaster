@@ -339,7 +339,7 @@ main() {
                  lz4*) COMP_TYPE="lz4"  ;;
             esac
         fi
-    elif [ $boot_avail -ge $safe_estimate_zx ]; then
+    elif [ $boot_avail -ge $safe_estimate_xz ]; then
         info_box -c "Must use %s compression due to size constraints" "[b]xz[/b]"
         COMP_TYPE="xz"
     else
