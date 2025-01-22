@@ -340,7 +340,7 @@ main() {
             esac
         fi
     elif [ $boot_avail -ge $safe_estimate_xz ]; then
-        info_box -c "Must use %s compression due to size constraints" "[b]xz[/b]"
+        info_box -c "$(pfgt "Must use %s compression due to size constraints" "[b]xz[/b]")"
         COMP_TYPE="xz"
     else
         error_box_pf "There is not enough space to do a live-remaster"
