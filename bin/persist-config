@@ -4,7 +4,7 @@
 # GETTEXT_KEYWORD="pfgt"
 # GETTEXT_KEYWORD="error_box_pf"
 
-antiX_lib=/usr/local/lib/antiX
+antiX_lib=/usr/lib/antiX
 source $antiX_lib/antiX-common.sh     "$@"
 
 last_ps_file=$LIVE_DIR/config/last-persist-save

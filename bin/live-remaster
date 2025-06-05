@@ -26,9 +26,9 @@ OTHER_OPTS="-b 262144"
 DEF_TZ="America/New_York"
 
 # Only needed for the location of the protect files
-source /usr/local/lib/antiX/antiX-get-param.sh
+source /usr/lib/antiX/antiX-get-param.sh
 
-source /usr/local/lib/antiX/antiX-common.sh  "$@"
+source /usr/lib/antiX/antiX-common.sh  "$@"
 
 TITLE="antiX Live Remaster"
 BLURB="$(gt "Create a new compressed file system saving all of the changes you have made to the system.")"
@@ -416,7 +416,7 @@ Version_Info_End
     #--- create the tmp/new squashfs file
     MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
     #MKSQ_OPTS="$FROM $tmp_file"
-    MKSQ_COMMAND="/usr/local/bin/run-mksquashfs $ret_file $MKSQ_OPTS"
+    MKSQ_COMMAND="/usr/bin/run-mksquashfs $ret_file $MKSQ_OPTS"
 
     vmsg "mksquashfs $MKSQ_OPTS"
 

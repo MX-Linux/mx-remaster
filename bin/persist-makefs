@@ -6,7 +6,7 @@
 # GETTEXT_KEYWORD="fmt_size"
 # GETTEXT_KEYWORD="error_box_pf"
 
-source /usr/local/lib/antiX/antiX-common.sh  "$@"
+source /usr/lib/antiX/antiX-common.sh  "$@"
 
 SAFETY_MARGIN=10
 

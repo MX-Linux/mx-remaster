@@ -7,7 +7,7 @@
 # GETTEXT_KEYWORD="pfgt"
 # GETTEXT_KEYWORD="vexit"
 
-source /usr/local/lib/antiX/antiX-common.sh "$@"
+source /usr/lib/antiX/antiX-common.sh "$@"
 
 trap clean_up EXIT
 
