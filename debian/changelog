@@ -1,3 +1,9 @@
+mx-remaster (25.10.01mx25) mx; urgency=medium
+
+  * remove mask on systemd-networkd-wait-online.service from live-files 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 19 Oct 2025 18:20:35 -0400
+
 mx-remaster (25.06.02mx25) mx; urgency=medium
 
   * cp anything in /etc/apt/sources.list.d, not just list files
