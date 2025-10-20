@@ -1,3 +1,9 @@
+mx-remaster (25.10.02mx25) mx; urgency=medium
+
+  * revert change to systemd-networkd-wait-online.service masking
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 20 Oct 2025 17:13:50 -0400
+
 mx-remaster (25.10.01mx25) mx; urgency=medium
 
   * remove mask on systemd-networkd-wait-online.service from live-files 
