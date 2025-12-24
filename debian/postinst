@@ -151,5 +151,8 @@ if [ -h /etc/systemd/system/initrd.target ]; then
 	fi
 fi
 
+if [ -d /usr/share/live-files/var/lib/sddm ]; then
+	chown sddm:sddm /usr/share/live-files/var/lib/sddm
+fi
 
 exit 0
