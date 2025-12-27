@@ -27,22 +27,6 @@ export TEXTDOMAIN=grub
 export TEXTDOMAINDIR="${datarootdir}/locale"
 
 CLASS="--class gnu-linux --class gnu --class os --class xen"
-########################################################
-## Reinstating multi-init support removed from Trixie ##
-########################################################
-SUPPORTED_INITS="
-                 sysvinit:/lib/sysvinit/init \
-                 systemd:/lib/systemd/systemd \
-                 upstart:/sbin/upstart \
-                 s6-rc:/lib/s6-rc/s6-rc-init \
-                 s6-66:/lib/s6-66/s6-66-init \
-                 openrc:/lib/openrc/openrc-init \
-                 dinit:/lib/dinit/dinit \
-                 runit:/lib/runit/runit-init \
-                 shepherd:/lib/shepherd/shepherd \
-                 sinit:/lib/sinit/sinit
-                 "
-########################################################
 
 if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
   OS=GNU/Linux
@@ -56,11 +40,6 @@ fi
 case ${GRUB_DEVICE} in
   /dev/loop/*|/dev/loop[0-9])
     GRUB_DEVICE=`losetup ${GRUB_DEVICE} | sed -e "s/^[^(]*(\([^)]\+\)).*/\1/"`
-    # We can't cope with devices loop-mounted from files here.
-    case ${GRUB_DEVICE} in
-      /dev/*) ;;
-      *) exit 0 ;;
-    esac
   ;;
 esac
 
@@ -102,7 +81,7 @@ case x"$GRUB_FS" in
 	    GRUB_CMDLINE_LINUX="rootflags=subvol=${rootsubvol} ${GRUB_CMDLINE_LINUX}"
 	fi;;
     xzfs)
-	rpool=`${grub_probe} --device ${GRUB_DEVICE} --target=fs_label 2>/dev/null || true`
+	rpool=`${grub_probe} --device ${GRUB_DEVICE} --target=fs_label 2>/dev/null || zdb -l ${GRUB_DEVICE} | awk -F \' '/ name/ { print $2 }'`
 	bootfs="`make_system_path_relative_to_its_root / | sed -e "s,@$,,"`"
 	LINUX_ROOT_DEVICE="ZFS=${rpool}${bootfs%/}"
 	;;
@@ -141,13 +120,7 @@ linux_entry_xsm ()
   fi
   if [ x$type != xsimple ] ; then
       if [ x$type = xrecovery ] ; then
-	  title="$(gettext_printf "%s, with Xen %s and Linux %s (%s)" "${os}" "${entry_xen_version}" "${version}" "$(gettext "${GRUB_RECOVERY_TITLE}")")"
-###################################################################################################################################
-## Reinstating multi-init support removed from Trixie
-###################################################################################################################################
-	  elif [ x$type = xinit-* ] ; then
-	  title="$(gettext_printf "%s, with Xen %s and Linux %s (%s)" "${os}" "${entry_xen_version}" "${version}" "${type#init-}")" 
-###################################################################################################################################
+	  title="$(gettext_printf "%s, with Xen %s and Linux %s (recovery mode)" "${os}" "${entry_xen_version}" "${version}")"
       else
 	  title="$(gettext_printf "%s, with Xen %s and Linux %s" "${os}" "${entry_xen_version}" "${version}")"
       fi
@@ -195,7 +168,7 @@ EOF
 EOF
     done
   fi
-  if ${xsm} && test -n "${xenpolicy}" ; then
+  if test -n "${xenpolicy}" ; then
     message="$(gettext_printf "Loading XSM policy ...")"
     sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$message" | grub_quote)'
@@ -388,25 +361,14 @@ for current_xen in ${reverse_sorted_xen_list}; do
 
 	linux_entry "${OS}" "${version}" "${xen_version}" advanced \
 	    "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}" "${GRUB_CMDLINE_XEN} ${GRUB_CMDLINE_XEN_DEFAULT}"
-	for supported_init in ${SUPPORTED_INITS}; do
-	    init_path="${supported_init#*:}"
-	    if [ -x "${init_path}" ] && [ "$(readlink -f /sbin/init)" != "$(readlink -f "${init_path}")" ]; then
-		linux_entry "${OS}" "${version}" "${xen_version}" "init-${supported_init%%:*}" \
-		    "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT} init=${init_path}" "${GRUB_CMDLINE_XEN} ${GRUB_CMDLINE_XEN_DEFAULT}"
-
-	    fi
-	done
 	if [ "x${GRUB_DISABLE_RECOVERY}" != "xtrue" ]; then
 	    linux_entry "${OS}" "${version}" "${xen_version}" recovery \
 		"${GRUB_CMDLINE_LINUX_RECOVERY} ${GRUB_CMDLINE_LINUX}" "${GRUB_CMDLINE_XEN}"
 	fi
-
-	list=`echo $list | tr ' ' '\n' | fgrep -vx "$linux" | tr '\n' ' '`
     done
     if [ x"$is_top_level" != xtrue ]; then
 	echo '	}'
     fi
-    xen_list=`echo $xen_list | tr ' ' '\n' | fgrep -vx "$current_xen" | tr '\n' ' '`
 done
 
 # If at least one kernel was found, then we need to

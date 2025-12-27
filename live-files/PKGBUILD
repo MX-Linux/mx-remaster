@@ -1,0 +1,15 @@
+pkgname=mx-remaster-live-files
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="MX remaster live-files overlay for creating clean snapshots (data-only)"
+arch=(any)
+license=(custom)
+source=()
+sha256sums=()
+
+package() {
+  local target="$pkgdir/usr/share/live-files"
+
+  install -d "$target"
+  cp -a "$startdir/files" "$startdir/general-files" "$target/"
+}

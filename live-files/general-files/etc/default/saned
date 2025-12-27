@@ -1,4 +1,0 @@
-# Defaults for the saned initscript, from sane-utils
-
-# Set to the user saned should run as
-RUN_AS_USER=saned

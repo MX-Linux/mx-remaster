@@ -1,16 +1,5 @@
 #! /bin/sh
-
-#tag for mx-system update
-#mx-system 20.11.02+4
-
-export LVM_SUPPRESS_FD_WARNINGS=true
-
-if [ "x$(debconf-get-selections |grep  '^grub-pc\sgrub2/enable_os_prober\sboolean\strue' | awk '{print $4}')" = "xtrue" ]; then
-   export GRUB_DISABLE_OS_PROBER="false"
-fi
-
 set -e
-
 
 # grub-mkconfig helper script.
 # Copyright (C) 2006,2007,2008,2009  Free Software Foundation, Inc.
@@ -31,34 +20,23 @@ set -e
 prefix="/usr"
 exec_prefix="/usr"
 datarootdir="/usr/share"
-quick_boot="0"
 
 export TEXTDOMAIN=grub
 export TEXTDOMAINDIR="${datarootdir}/locale"
 
 . "$pkgdatadir/grub-mkconfig_lib"
 
-found_other_os=
-
-adjust_timeout () {
-  if [ "$quick_boot" = 1 ] && [ "x${found_other_os}" != "x" ]; then
-    cat << EOF
-set timeout_style=menu
-if [ "\${timeout}" = 0 ]; then
-  set timeout=10
-fi
-EOF
-  fi
-}
-
 if [ "x${GRUB_DISABLE_OS_PROBER}" = "xtrue" ]; then
+  grub_warn "$(gettext_printf "os-prober will not be executed to detect other bootable partitions.\nSystems on them will not be added to the GRUB boot configuration.\nCheck GRUB_DISABLE_OS_PROBER documentation entry.")"
   exit 0
 fi
 
-if [ -z "`which os-prober 2> /dev/null`" ] || [ -z "`which linux-boot-prober 2> /dev/null`" ] ; then
+if ! command -v os-prober > /dev/null || ! command -v linux-boot-prober > /dev/null ; then
   # missing os-prober and/or linux-boot-prober
   exit 0
 fi
+
+grub_warn "$(gettext_printf "os-prober will be executed to detect other bootable partitions.\nIts output will be used to detect bootable binaries on them and create new boot entries.")"
 
 OSPROBED="`os-prober | tr ' ' '^' | paste -s -d ' '`"
 if [ -z "${OSPROBED}" ] ; then
@@ -67,7 +45,6 @@ if [ -z "${OSPROBED}" ] ; then
 fi
 
 osx_entry() {
-    found_other_os=1
     if [ x$2 = x32 ]; then
         # TRANSLATORS: it refers to kernel architecture (32-bit)
 	bitstr="$(gettext "(32-bit)")"
@@ -136,21 +113,30 @@ EOF
 
 used_osprober_linux_ids=
 
-wubi=
+if [ "x$GRUB_TOP_LEVEL_OS_PROBER" != x ]; then
+  OSPROBED=$(grub_move_to_front "$GRUB_TOP_LEVEL_OS_PROBER" ${OSPROBED})
+fi
+
+case "$GRUB_OS_PROBER_SKIP_LIST" in *@/[dD][eE][vV]/*)
+	grub_warn "$(gettext_printf "GRUB_OS_PROBER_SKIP_LIST contains deprecated <UUID>@/dev/* notation. The @/dev/* suffix is ignored.")"
+esac
 
 for OS in ${OSPROBED} ; do
   DEVICE="`echo ${OS} | cut -d ':' -f 1`"
   LONGNAME="`echo ${OS} | cut -d ':' -f 2 | tr '^' ' '`"
   LABEL="`echo ${OS} | cut -d ':' -f 3 | tr '^' ' '`"
   BOOT="`echo ${OS} | cut -d ':' -f 4`"
-  if UUID="`${grub_probe} --target=fs_uuid --device ${DEVICE%@*}`"; then
-    EXPUUID="$UUID"
+  unset UUID
+  if [ -n "${GRUB_OS_PROBER_SKIP_LIST}" ] && UUID="`${grub_probe} --target=fs_uuid --device ${DEVICE%@*}`"; then
+    SPACE='[[:space:],;]' # regex matching spaces and common separators
 
-    if [ x"${DEVICE#*@}" != x ] ; then
-      EXPUUID="${EXPUUID}@${DEVICE#*@}"
+    if [ x"${DEVICE##*@*}" = x ] ; then
+      EXPUUID="$UUID@${DEVICE#*@}"
+    else
+      EXPUUID="$UUID(@/dev/.*)?"
     fi
 
-    if [ "x${GRUB_OS_PROBER_SKIP_LIST}" != "x" ] && [ "x`echo ${GRUB_OS_PROBER_SKIP_LIST} | grep -i -e '\b'${EXPUUID}'\b'`" != "x" ] ; then
+    if printf %s " ${GRUB_OS_PROBER_SKIP_LIST} " | grep -Eqie "${SPACE}${EXPUUID}${SPACE}" ; then
       echo "Skipped ${LONGNAME} on ${DEVICE} by user request." >&2
       continue
     fi
@@ -174,26 +160,10 @@ for OS in ${OSPROBED} ; do
   case ${BOOT} in
     chain)
 
-      case ${LONGNAME} in
-	Windows*)
-	  if [ -z "$wubi" ]; then
-	    if [ -x /usr/share/lupin-support/grub-mkimage ] && \
-	       /usr/share/lupin-support/grub-mkimage --test; then
-	      wubi=yes
-	    else
-	      wubi=no
-	    fi
-	  fi
-	  if [ "$wubi" = yes ]; then
-	    echo "Skipping ${LONGNAME} on Wubi system" >&2
-	    continue
-	  fi
-	  ;;
-      esac
-
-      found_other_os=1
 	  onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
+# This menu entry is supported only on PC BIOS platforms.
+if [ "\$grub_platform" = "pc" ]; then
 menuentry '$(echo "${LONGNAME} $onstr" | grub_quote)' $CLASS --class os \$menuentry_id_option 'osprober-chain-$(grub_get_device_id "${DEVICE}")' {
 EOF
       save_default_entry | grub_add_tab
@@ -218,15 +188,17 @@ EOF
       cat <<EOF
 	chainloader +1
 }
+fi
 EOF
     ;;
     efi)
 
-	found_other_os=1
 	EFIPATH=${DEVICE#*@}
 	DEVICE=${DEVICE%@*}
 	onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
+# This menu entry is supported only on EFI platforms.
+if [ "\$grub_platform" = "efi" ]; then
 menuentry '$(echo "${LONGNAME} $onstr" | grub_quote)' $CLASS --class os \$menuentry_id_option 'osprober-efi-$(grub_get_device_id "${DEVICE}")' {
 EOF
       save_default_entry | sed -e "s/^/\t/"
@@ -235,6 +207,7 @@ EOF
       cat <<EOF
 	chainloader ${EFIPATH}
 }
+fi
 EOF
     ;;
     linux)
@@ -254,7 +227,7 @@ EOF
         LBOOT="`echo ${LINUX} | cut -d ':' -f 2`"
         LLABEL="`echo ${LINUX} | cut -d ':' -f 3 | tr '^' ' '`"
         LKERNEL="`echo ${LINUX} | cut -d ':' -f 4`"
-        LINITRD="`echo ${LINUX} | cut -d ':' -f 5  | tr '^' ' '`"
+        LINITRD="`echo ${LINUX} | cut -d ':' -f 5 | tr '^' ' '`"
         LPARAMS="`echo ${LINUX} | cut -d ':' -f 6- | tr '^' ' '`"
 
         if [ -z "${LLABEL}" ] ; then
@@ -266,14 +239,8 @@ EOF
 	  LINITRD="${LINITRD#/boot}"
 	fi
 
-	if [ -z "${prepare_boot_cache}" ]; then
-	  prepare_boot_cache="$(prepare_grub_to_access_device ${LBOOT} | grub_add_tab)"
-	  [ "${prepare_boot_cache}" ] || continue
-	fi
-
-	found_other_os=1
 	onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
-	recovery_params="$(echo "${LPARAMS}" | grep 'single\|recovery')" || true
+	recovery_params="$(echo "${LPARAMS}" | grep single)" || true
 	counter=1
 	while echo "$used_osprober_linux_ids" | grep 'osprober-gnulinux-$LKERNEL-${recovery_params}-$counter-$boot_device_id' > /dev/null; do
 	    counter=$((counter+1));
@@ -283,7 +250,19 @@ EOF
 	fi
 	used_osprober_linux_ids="$used_osprober_linux_ids 'osprober-gnulinux-$LKERNEL-${recovery_params}-$counter-$boot_device_id'"
 
-	if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xy ]; then
+	if [ -z "${prepare_boot_cache}" ]; then
+	  prepare_boot_cache="$(prepare_grub_to_access_device ${LBOOT} | grub_add_tab)"
+	fi
+
+	# The GRUB_DISABLE_SUBMENU option used to be different than others since it was
+	# mentioned in the documentation that has to be set to 'y' instead of 'true' to
+	# enable it. This caused a lot of confusion to users that set the option to 'y',
+	# 'yes' or 'true'. This was fixed but all of these values must be supported now.
+	if [ "x${GRUB_DISABLE_SUBMENU}" = xyes ] || [ "x${GRUB_DISABLE_SUBMENU}" = xy ]; then
+	    GRUB_DISABLE_SUBMENU="true"
+	fi
+
+	if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xtrue ]; then
             cat << EOF
 menuentry '$(echo "$OS $onstr" | grub_quote)' $CLASS --class gnu-linux --class gnu --class os \$menuentry_id_option 'osprober-gnulinux-simple-$boot_device_id' {
 EOF
@@ -333,14 +312,13 @@ EOF
       echo "$title_correction_code"
     ;;
     macosx)
-      if [ "${UUID}" ]; then
+      if [ "${UUID=`${grub_probe} --target=fs_uuid --device ${DEVICE}`}" ]; then
 	OSXUUID="${UUID}"
 	osx_entry xnu_kernel 32
 	osx_entry xnu_kernel64 64
       fi
     ;;
     hurd)
-      found_other_os=1
       onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
 menuentry '$(echo "${LONGNAME} $onstr" | grub_quote)' --class hurd --class gnu --class os \$menuentry_id_option 'osprober-gnuhurd-/boot/gnumach.gz-false-$(grub_get_device_id "${DEVICE}")' {
@@ -383,5 +361,3 @@ EOF
     ;;
   esac
 done
-
-adjust_timeout
