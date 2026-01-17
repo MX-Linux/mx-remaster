@@ -214,7 +214,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
     persist_opts=--quiet
     case "$AUTOSAVE_MODE" in
         1*) ;;
-        2*) if [ "$alttest" = "true" ]; then
+        2*) if [ "$alttest" = "false" ]; then
               persist_opts=
             else
               echo "Current system does not support semi-automatic save.  Falling back to automatic"
