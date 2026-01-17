@@ -1,8 +1,12 @@
 mx-remaster (26.01.02mx25) mx; urgency=medium
 
+  [ fehlix ]
   * add “init=...” to the set of unsaved live boot parameters
 
- -- fehlix <fehlix@mxlinux.org>  Fri, 16 Jan 2026 11:57:57 -0500
+  [ Dolphin Oracle ]
+  * fall back to automatic persist-save when systemd or  dual-init configured 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 16 Jan 2026 20:13:55 -0500
 
 mx-remaster (26.01.01mx25) mx; urgency=medium
 
