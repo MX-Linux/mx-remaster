@@ -1,5 +1,5 @@
 [Unit]
-Description=check broadcom parts and adjust
+Description=finish live setup
 After=local-fs.target
 ConditionPathExists=/live/linux
 
