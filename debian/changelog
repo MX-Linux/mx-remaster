@@ -1,3 +1,9 @@
+mx-remaster (26.03.01mx25) UNRELEASED; urgency=medium
+
+  * remove rc.local functions to init setup scripts (sysv & systemd)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 22 Mar 2026 15:49:43 -0400
+
 mx-remaster (26.01.02mx25) mx; urgency=medium
 
   [ fehlix ]
