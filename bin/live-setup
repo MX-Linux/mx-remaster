@@ -4,9 +4,11 @@
 #
 # does some initial setup based on chose live environment
 
-#DEBUG
-touch /fred2
-
+#exit if not running live
+if [ ! -e /live/linux ]; then
+    echo "Not a live system, exiting"
+    exit 0
+fi
 # Make sure disabled live services are restored
 restore=/live/etc/init.d/live-restore-services
 
