@@ -20,7 +20,7 @@ if [ ! -e /live/linux ]; then
 fi
 
 #exit if systemd
-if [ -e "/live/config/systemd" ]; then
+if [ -e "/run/systemd/system" ]; then
     exit 0
 fi
 
