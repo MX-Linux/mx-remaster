@@ -2,6 +2,7 @@
 Description=adjust Xfce clocks utilities
 After=local-fs.target
 ConditionPathExists=/live/linux
+ConditionPathExists=/usr/bin/clock12or24
 
 [Service]
 Type=oneshot

@@ -2,6 +2,7 @@
 Description=check broadcom parts and adjust
 After=local-fs.target
 ConditionPathExists=/live/linux
+ConditionPathExists=/usr/bin/BroadcomStartup
 
 [Service]
 Type=oneshot

@@ -6,6 +6,7 @@ mx-remaster (26.03.03mx25) mx; urgency=medium
   * update live init.d scripts
   * update installed system init.d scripts
   * remove debug signal files
+  * add protection for script availability to systemd service files
 
  -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 22 Mar 2026 21:07:50 -0400
 
