@@ -16,7 +16,7 @@ if [ "$1" = "remove" ]; then
 		deb-systemd-helper mask 'hwclock-mx.service' >/dev/null || true
 		deb-systemd-helper mask 'live-setup.service' >/dev/null || true
 	fi
-	if [ -x /usr/sbin/update-rc.d ];
+	if [ -x /usr/sbin/update-rc.d ]; then
 		update-rc.d live-setup-init remove
 	fi
 fi
@@ -40,7 +40,7 @@ if [ "$1" = "purge" ]; then
 		deb-systemd-helper purge 'live-setup.service' >/dev/null || true
 		deb-systemd-helper unmask 'live-setup.service' >/dev/null || true
 	fi
-	if [ -x /usr/sbin/update-rc.d ];
+	if [ -x /usr/sbin/update-rc.d ]; then
 		update-rc.d live-setup-init remove
 		if [ -e /etc/init.d/live-setup-init ]; then
 			rm /etc/init.d/live-setup-init
