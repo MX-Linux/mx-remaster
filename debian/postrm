@@ -17,7 +17,7 @@ if [ "$1" = "remove" ]; then
 		deb-systemd-helper mask 'live-setup.service' >/dev/null || true
 	fi
 	if [ -x /usr/sbin/update-rc.d ]; then
-		update-rc.d live-setup-init remove
+		update-rc.d live-setup remove
 	fi
 fi
 
@@ -42,8 +42,8 @@ if [ "$1" = "purge" ]; then
 	fi
 	if [ -x /usr/sbin/update-rc.d ]; then
 		update-rc.d live-setup-init remove
-		if [ -e /etc/init.d/live-setup-init ]; then
-			rm /etc/init.d/live-setup-init
+		if [ -e /etc/init.d/live-setup ]; then
+			rm /etc/init.d/live-setup
 		fi
 	fi
 fi
