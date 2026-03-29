@@ -1,4 +1,4 @@
-#! /bin/sh
+f#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          live-setup
 # Required-Start:    $local_fs udev dbus
@@ -25,7 +25,9 @@ if [ -e "/run/systemd/system" ]; then
 fi
 
 #exit if rc.local still has live setup in it, check for usb_save function
-grep -q usb_save /etc/rc.local && exit 0
+if [ -n "$(grep usb_save /etc/rc.local)" ]; then
+	exit 0
+fi
 
 LIVESETUP="/usr/bin/live-setup"
 
