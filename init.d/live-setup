@@ -1,4 +1,4 @@
-f#! /bin/sh
+#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          live-setup
 # Required-Start:    $local_fs udev dbus
