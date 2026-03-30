@@ -1,7 +1,7 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          live-setup
-# Required-Start:    $local_fs udev dbus
+# Required-Start:    $local_fs udev dbus console-setup.sh
 # Required-Stop:
 # X-Start-Before:    lightdm slim slimski sddm plymouth
 # Default-Start:     3 4 5
@@ -25,9 +25,11 @@ if [ -e "/run/systemd/system" ]; then
 fi
 
 #exit if rc.local still has live setup in it, check for usb_save function
-if [ -n "$(grep usb_save /etc/rc.local)" ]; then
+CHECK=$(grep usb_save /etc/rc.local)
+if [ -n "$CHECK" ]; then
 	exit 0
 fi
+
 
 LIVESETUP="/usr/bin/live-setup"
 
