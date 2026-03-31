@@ -32,7 +32,13 @@ TEST=$(locale | grep ^LC_PAPER= | cut -d= -f2 | tr -d '"'"'" )
 if [ "$TEST" = "POSIX" ]; then
 	TEST=$(grep $LANG= /etc/default/locale| cut -d= -f2 | tr -d '"'"'" )
 fi
-case $TEST in
+
+#set /etc/papersize
+PAPERSIZE="a4"
+[ -r /etc/default/locale ] && source /etc/default/locale
+[ -z "$LC_PAPER" ] &&  LC_PAPER=$LANG
+
+case $LC_PAPER in
     en_CA*)  PAPERSIZE="letter"       ;; # English locale for Canada
     en_US*)  PAPERSIZE="letter"       ;; # English locale for the USA
     es_BO*)  PAPERSIZE="letter"       ;; # Spanish locale for Bolivia
