@@ -157,7 +157,7 @@ edit_config() {
     echo "AUTOSAVE_MODE=\"$AUTOSAVE_MODE\"" > $CONF_FILE
 
     info_box -c "$TITLE" ""                                                                    \
-        "$(pfgt "Auto-save mode set to %s in %s." "[b]$AUTOSAVE_MODE[/]"  "[f]$CONF_FILE[/]")" \
+        "$(pfgt "Auto-save mode set to %s in %s." "[b]${AUTOSAVE_MODE#? }[/]"  "[f]$CONF_FILE[/]")" \
         ""
 }
 
