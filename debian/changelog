@@ -1,4 +1,4 @@
-mx-remaster (26.03.06mx25) mx; urgency=medium
+mx-remaster (26.03.07mx25) mx; urgency=medium
 
   * remove rc.local functions to init setup scripts (sysv & systemd)
   * adjust comments in live-setup service file
@@ -7,9 +7,9 @@ mx-remaster (26.03.06mx25) mx; urgency=medium
   * update installed system init.d scripts
   * remove debug signal files
   * add protection for script availability to systemd service files
-  * add backup for locale based papersize setting
+  * adjust papersize locale detction (fehlix)
 
- -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 29 Mar 2026 20:10:42 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 31 Mar 2026 20:28:01 -0400
 
 mx-remaster (26.01.02mx25) mx; urgency=medium
 
