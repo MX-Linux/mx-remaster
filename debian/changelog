@@ -7,9 +7,9 @@ mx-remaster (26.03.07mx25) mx; urgency=medium
   * update installed system init.d scripts
   * remove debug signal files
   * add protection for script availability to systemd service files
-  * adjust papersize locale detction (fehlix)
+  * adjust papersize locale detction (fehlix) 
 
- -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 31 Mar 2026 20:28:01 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 31 Mar 2026 20:41:11 -0400
 
 mx-remaster (26.01.02mx25) mx; urgency=medium
 
