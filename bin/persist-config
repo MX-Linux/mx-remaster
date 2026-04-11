@@ -39,7 +39,8 @@ fi
 #echo alttest is $alttest
 
 #check for multi-init fix when running sysvinit
-if [ ! -d /run/systemd/system ] &&  [ -p /run/initctl ] && \
+
+if [ ! -e /live/config/systemd ] &&  grep -q "sysvinit" /live/config/init-prog && \
     grep -q '^\s*mkdir \s*/run/systemd/system' /usr/lib/init-diversity/shutdown.sh 2>/dev/null; then
     alttest="false"
 fi
