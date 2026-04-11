@@ -904,7 +904,7 @@ cli_size_menu() {
         scnt=$((scnt + 1))
 
         case $size in
-                quit) label=$(bq $(qt "quit"))  ;;
+                quit) label=$(bq $(gt "quit"))  ;;
             *[^0-9]*) label=$(bq "$size")       ;;
                    *) label=$(label_meg $size)  ;;
         esac

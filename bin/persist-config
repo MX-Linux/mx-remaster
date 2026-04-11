@@ -37,6 +37,12 @@ if [[ -e /live/config/systemd || ( -e "/usr/lib/systemd/systemd" && -e "/usr/lib
 fi
 #echo alttest is $alttest
 
+#check for multi-init fix when running sysvinit
+if [ ! -d /run/systemd/system ] &&  [ -p /run/initctl ] && \
+    grep -q '^\s*mkdir \s*/run/systemd/system' /usr/lib/init-diversity/shutdown.sh 2>/dev/null; then
+    alttest="false"
+fi
+
 BLURB="
     $(gt "Configure root persistence saves to run either:")
 
@@ -44,7 +50,7 @@ BLURB="
     2) [b]$_Semi_Automatic_[/] ($(gt "ask at shutdown/reboot"))
     3) [b]$_Manual_[/] ($(gt "you snooze, you lose"))"
     
-#check for systemd or multi-init.  neither provide an active console at shutdown for sem-auto to work with, so don't offer it.
+#check for systemd or multi-init.  neither provide an active console at shutdown for semi-auto to work with, so don't offer it.
 if [ "$alttest" = "true" ]; then
     BLURB="
     $(gt "Configure root persistence saves to run either:")
@@ -125,7 +131,7 @@ edit_config() {
 
     fmt="[fixed][b]%15s:[/][/] %s   "
     if [ "$alttest" = "true" ]; then
-    combo_box save-mode "1 $_Automatic_!3 $_Manual_!4 $_Quit_" -n \
+        combo_box save-mode "1 $_Automatic_!3 $_Manual_!4 $_Quit_" -n \
         "$TITLE" ""                                                    \
         "$(gt "Please choose auto-save mode.")"                        \
         ""                                                             \
@@ -230,7 +236,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
 
     rm -f $last_ps_file
 
-    vmsg "running perist-save $persist_opts"
+    vmsg "running persist-save $persist_opts"
 
     persist-save $persist_opts 2>&1
     ret=$?
