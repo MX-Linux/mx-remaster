@@ -6,6 +6,9 @@ mx-remaster (26.04.02mx25) mx; urgency=medium
   * renable semi-automatic save mode for live-boot with sysvinit
   * fix persist-makefs cli-mode to avoid loss of persistence file
 
+  [ Dolphin Oracle ]
+  * adjust alttest to work with fresh live system
+
  -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 11 Apr 2026 16:51:09 -0400
 
 mx-remaster (26.03.07mx25) mx; urgency=medium
