@@ -32,6 +32,7 @@ _Semi_Automatic_="$(gt "Semi-Automatic")"
 
 alttest="false"
 
+#check for systemd and older multi-init setup.  Does not provide an active console at shutdown for semi-auto to work with, so don't offer it.
 if [[ -e /live/config/systemd || ( -e "/usr/lib/systemd/systemd" && -e "/usr/lib/sysvinit/init" ) ]] ; then
 	alttest="true"
 fi
@@ -50,7 +51,7 @@ BLURB="
     2) [b]$_Semi_Automatic_[/] ($(gt "ask at shutdown/reboot"))
     3) [b]$_Manual_[/] ($(gt "you snooze, you lose"))"
     
-#check for systemd or multi-init.  neither provide an active console at shutdown for semi-auto to work with, so don't offer it.
+#do not offer semi-automatic if multi-init fix not present or systemd in use
 if [ "$alttest" = "true" ]; then
     BLURB="
     $(gt "Configure root persistence saves to run either:")
