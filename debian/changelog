@@ -1,3 +1,10 @@
+mx-remaster (26.04.02mx25) mx; urgency=medium
+
+  [ fehlix ]
+  * add another fix to persist-makefs cli-mode to avoid loss of persistence file
+
+ -- fehlix <fehlix@mxlinux.org>  Sat, 11 Apr 2026 13:12:47 -0400
+
 mx-remaster (26.04.01mx25) mx; urgency=medium
 
   [ fehlix ]
