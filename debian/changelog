@@ -3,9 +3,9 @@ mx-remaster (26.04.01mx25) mx; urgency=medium
   [ fehlix ]
   * check for shutdown-fix for sysvinit when live boot with dual-init is detected
   * renable semi-automatic save mode for live-boot with sysvinit
-  * fix persist-makefs cli-mode to avoid loss of persistence file
+  * fix persist-makefs cli-mode to avoid loss of persistence file 
 
- -- fehlix <fehlix@mxlinux.org>  Fri, 10 Apr 2026 20:36:23 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 11 Apr 2026 09:03:03 -0400
 
 mx-remaster (26.03.07mx25) mx; urgency=medium
 
