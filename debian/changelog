@@ -1,3 +1,10 @@
+mx-remaster (26.05.01mx25) mx; urgency=medium
+
+  * add amd-ucode and intel-ucode injection into live initrd
+  after remaster if uc-tool is available from package uc-tool-mx
+
+ -- fehlix <fehlix@mxlinux.org>  Fri, 01 May 2026 17:50:31 -0400
+
 mx-remaster (26.04.02mx25) mx; urgency=medium
 
   [ fehlix ]

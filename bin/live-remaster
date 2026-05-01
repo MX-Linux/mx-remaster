@@ -50,6 +50,7 @@ EXTRA_USAGE="
     -t|--title=<[p]title[/]>  $(pfgt "Use %s instead of prompting user for title." "<[p]title[/]>")
     --general           $(gt "Make a general-purpose remaster.")
     --personal          $(gt "Make a personalized remaster.")
+    --no-ucode          $(gt "Skip microcode refresh in initrd after remaster.")
 "
 
 OPTIONS="
@@ -57,6 +58,7 @@ OPTIONS="
     t,title|o|TITLE
     general||GENERAL
     personal||PERSONAL
+    no-ucode||NO_UCODE
 "
 
 prep_main() {
@@ -627,6 +629,22 @@ finish_remaster() {
     local md5_file=$SQFILE_FULL.md5.new
     cat $new_file | md5sum > $md5_file
     sed -i "s/ .*/  $SQFILE_NAME/" $md5_file
+
+    # -- microcode refresh in all initrd*.gz (skip with --no-ucode) -------
+    if [ -z "$SET_NO_UCODE" ]; then
+        if command -v uc-tool >/dev/null 2>&1; then
+            local uc_vflag="-s"; [ "$SET_VERBOSE" ] && uc_vflag="-V"
+            local uc_initrd
+            for uc_initrd in /live/boot-dev/antiX/initrd.gz /live/boot-dev/antiX/initrd[0-9]*.gz; do
+                [ -e "$uc_initrd" ] || continue
+                qmsg "Adding microcode to $(basename "$uc_initrd") ..."
+                uc-tool $uc_vflag -u amd,intel -i "$uc_initrd" \
+                    || qmsg "WARNING: ucode injection failed for $(basename "$uc_initrd") -- may lack microcode"
+            done
+        else
+            qmsg "uc-tool not found -- skipping microcode refresh in initrd"
+        fi
+    fi
 
     local_clean_up && trap EXIT
 
