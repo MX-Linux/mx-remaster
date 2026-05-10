@@ -1,9 +1,8 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          live-setup
-# Required-Start:    $local_fs udev dbus console-setup.sh
+# Required-Start:    $all
 # Required-Stop:
-# X-Start-Before:    lightdm slim slimski sddm plymouth
 # Default-Start:     3 4 5
 # Default-Stop:      0 6
 # Short-Description: Run /usr/bin/live-setup if it exist

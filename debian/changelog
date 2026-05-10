@@ -1,8 +1,9 @@
 mx-remaster (26.05.01mx25) mx; urgency=medium
 
-  * change source to . in live-setup papersize test
+  * change source to . in live-setup papersize test 
+  * force live-setup to run later (addressing race condition in sddm)
 
- -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 09 May 2026 20:42:31 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 10 May 2026 09:00:21 -0400
 
 mx-remaster (26.04.02mx25) mx; urgency=medium
 
