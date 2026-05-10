@@ -28,7 +28,7 @@ usb_save=/live/etc/init.d/live-usb-save
 
 #set /etc/papersize
 PAPERSIZE="a4"
-[ -r /etc/default/locale ] && source /etc/default/locale
+[ -r /etc/default/locale ] && . /etc/default/locale
 [ -z "$LC_PAPER" ] &&  LC_PAPER=$LANG
 
 case $LC_PAPER in
