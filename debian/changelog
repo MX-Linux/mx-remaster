@@ -1,9 +1,9 @@
 mx-remaster (26.05.01mx25) mx; urgency=medium
 
-  * add amd-ucode and intel-ucode injection into live initrd
-  after remaster if uc-tool is available from package uc-tool-mx
+  * change source to . in live-setup papersize test 
+  * force live-setup to run later (addressing race condition in sddm)
 
- -- fehlix <fehlix@mxlinux.org>  Fri, 01 May 2026 17:50:31 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 10 May 2026 09:00:21 -0400
 
 mx-remaster (26.04.02mx25) mx; urgency=medium
 
