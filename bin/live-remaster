@@ -42,6 +42,31 @@ TITLE="antiX Live Remaster"
 BLURB="$(gt "Create a new compressed file system saving all of the changes you have made to the system.")"
 BLURB="\n$(echo "$BLURB" | fold -s -w 74 | sed 's/^/    /')"
 
+get_release_name() {
+    local root=$1 release name version
+
+    if [ -r "$root/etc/os-release" ]; then
+        release=$(sed -n 's/^PRETTY_NAME=//p' "$root/etc/os-release" | tail -n 1)
+    fi
+
+    if [ -z "$release" ] && [ -r "$root/etc/lsb-release" ]; then
+        release=$(sed -n 's/^DISTRIB_DESCRIPTION=//p' "$root/etc/lsb-release" | tail -n 1)
+    fi
+
+    if [ -z "$release" ] && [ -r "$root/etc/lsb-release" ]; then
+        name=$(sed -n 's/^DISTRIB_ID=//p' "$root/etc/lsb-release" | tail -n 1)
+        version=$(sed -n 's/^DISTRIB_RELEASE=//p' "$root/etc/lsb-release" | tail -n 1)
+        release="$name $version"
+        release=${release# }
+        release=${release% }
+    fi
+
+    release=${release#\"}
+    release=${release%\"}
+    [ -n "$release" ] || release="$TITLE"
+    printf '%s\n' "$release"
+}
+
 SAFETY_MARGIN=20
 
      VERSION="26.06.01"
@@ -107,6 +132,7 @@ main() {
     #--- Mount device holding linuxfs if needed
     mount_if_needed $BOOT_DEV $BOOT_MP
     make_readwrite $BOOT_MP 2 || error_box_pf "The live file system is read-only.  Cannot remaster."
+    local release_name="$(get_release_name "$AUFS_MP")"
 
     _General_="$(gt "General")"
     _Personal_="$(gt "Personal")"
@@ -406,6 +432,7 @@ main() {
 $(version_id)
 
 title: $OPT_TITLE
+release: $release_name
 creation date: $(date +"%e %B %Y %T %Z")
 kernel: $(uname -sr)
 machine: $(uname -m)
@@ -413,6 +440,24 @@ Version_Info_End
 
     av_file=$AUFS_MP/etc/antix-version
     [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $full_vid_file
+
+    # Update FULL_DISTRO_NAME in bootloader-data so live-kernel-updater
+    # labels regenerated boot menus with the remastered release name.
+    # Leave DISTRO_NAME alone; it selects the bootloader template directory.
+    local bld_file=/usr/share/antiX/bootloader-data
+    if [ -r "$AUFS_MP$bld_file" ]; then
+        local full_bld_file=$TEMP_DIR/template$bld_file
+        local boot_name code_name
+        mkdir -p $(dirname $full_bld_file)
+        cp "$AUFS_MP$bld_file" "$full_bld_file"
+        # remove chars that would break the read_data parser in live-multi-kernel
+        boot_name=$(echo "$release_name" | tr -d '$`";')
+        # drop a trailing codename to avoid "... (Libretto) (Libretto)" titles
+        code_name=$(sed -rn 's/^\s*CODE_NAME="?([^"]*)"?\s*$/\1/p' "$full_bld_file" | tail -n 1)
+        [ -n "$code_name" ] && boot_name=${boot_name%" ($code_name)"}
+        sed -i '/^\s*FULL_DISTRO_NAME=/d' "$full_bld_file"
+        printf ' FULL_DISTRO_NAME="%s"\n' "$boot_name" >> "$full_bld_file"
+    fi
 
     installed-to-live add=$TEMP_DIR/template read-only || error_box_pf "The %s program failed to work" installed-to-live
 
@@ -535,6 +580,7 @@ Version_Info_End
     info_box -c                                             \
         "$(gt "Created new compressed filesystem file:")"   \
         "[f]$new_file[/]"                                   \
+        "$(pfgt "Remastered release: %s" "[b]$release_name[/]")" \
         "[fixed]"                                           \
         "${main_text[@]}"                                   \
         "[/]"                                               \
