@@ -1,3 +1,17 @@
+mx-remaster (26.06.01mx25) mx; urgency=medium
+
+  [ live-remaster ]
+  * inject amd/intel microcode into live initrd(s) after remaster
+    if uc-tool (package uc-tool-mx) is available
+  * respect LKU per-vendor flag files to selectively skip vendors:
+    /etc/live-kernel-updater/no-ucode-amd
+    /etc/live-kernel-updater/no-ucode-intel
+  * add --no-ucode[=<list>] option to live-remaster to skip microcode refresh;
+    <list>: amd, intel, or amd,intel (default: both)
+  * add --version option to live-remaster
+
+ -- fehlix <fehlix@mxlinux.org>  Fri, 12 Jun 2026 04:50:00 -0400
+
 mx-remaster (26.05.01mx25) mx; urgency=medium
 
   * change source to . in live-setup papersize test 
