@@ -91,12 +91,14 @@ The copies under
 .I <mount-point>/etc
 are preferred when an explicit system tree is given.
 .TP
-.I boot/isolinux/*.cfg, boot/syslinux/*.cfg
-Menu configuration files whose
+.I boot/isolinux/isolinux.cfg, boot/syslinux/syslinux.cfg
+Main menu configuration files whose
 .B "MENU TITLE"
 and dated
 .B "MENU LABEL"
-lines are updated in place.
+lines are updated in place.  Sub-menu configs (e.g.
+.IR checkmedia.cfg )
+are left alone.
 .TP
 .I boot/grub/grub.cfg, boot/grub/config/*.cfg
 GRUB menu files whose dated

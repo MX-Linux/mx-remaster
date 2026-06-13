@@ -340,7 +340,7 @@ main() {
     # Main menu title banner -> "Welcome to <release>" (no date):
     #   - syslinux/isolinux "MENU TITLE [Welcome to] ..." lines
     #   - grub theme "Welcome to ...!" banner text
-    for file in "$root"/boot/isolinux/*.cfg "$root"/boot/syslinux/*.cfg; do
+    for file in "$root"/boot/isolinux/isolinux.cfg "$root"/boot/syslinux/syslinux.cfg; do
         [[ -f "$file" ]] && update_menu_title "$file" "$new_title"
     done
 
@@ -352,7 +352,7 @@ main() {
     #   - syslinux/isolinux MENU LABEL lines that carry a build date
     #   - grub menuentry titles that carry a build date
     # (both the sysvinit and systemd variants, keeping their init markers)
-    for file in "$root"/boot/isolinux/*.cfg "$root"/boot/syslinux/*.cfg; do
+    for file in "$root"/boot/isolinux/isolinux.cfg "$root"/boot/syslinux/syslinux.cfg; do
         [[ -f "$file" ]] && update_menu_label "$file" "$label_text"
     done
 
