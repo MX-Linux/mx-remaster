@@ -31,17 +31,6 @@ vt_handoff="0"
 export TEXTDOMAIN=grub
 export TEXTDOMAINDIR="${datarootdir}/locale"
 
-get_linuxfs_release ()
-{
-  vf=$1
-  release=
-
-  release=$(sed -n 's/^release:[[:space:]]*//p' "$vf" | tail -n 1)
-  [ -n "$release" ] || release=$(sed -n 's/^title:[[:space:]]*//p' "$vf" | tail -n 1)
-
-  printf '%s\n' "$release"
-}
-
 CLASS="--class gnu-linux --class gnu --class os"
 ########################################################
 ## Reinstating multi-init support removed from Trixie ##
@@ -58,31 +47,19 @@ SUPPORTED_INITS="
                  shepherd:/lib/shepherd/shepherd \
                  sinit:/lib/sinit/sinit
                  "
-
-GRUB_LINUXFS_RELEASE=
-if [ -r /etc/live/version/linuxfs.ver ]; then
-  GRUB_LINUXFS_RELEASE="$(get_linuxfs_release /etc/live/version/linuxfs.ver)"
-fi
+########################################################
 
 if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
-  if [ -n "$GRUB_LINUXFS_RELEASE" ]; then
-    OS="$GRUB_LINUXFS_RELEASE"
-  else
-    OS=GNU/Linux
-  fi
+  OS=GNU/Linux
 else
-  if [ -n "$GRUB_LINUXFS_RELEASE" ]; then
-    OS="$GRUB_LINUXFS_RELEASE"
-  else
-    case ${GRUB_DISTRIBUTOR} in
-      Ubuntu|Kubuntu|MX*)
-        OS="${GRUB_DISTRIBUTOR}"
-        ;;
-      *)
-        OS="${GRUB_DISTRIBUTOR}"
-        ;;
-    esac
-  fi
+  case ${GRUB_DISTRIBUTOR} in
+    Ubuntu|Kubuntu|MX*)
+      OS="${GRUB_DISTRIBUTOR}"
+      ;;
+    *)
+      OS="${GRUB_DISTRIBUTOR}"
+      ;;
+  esac
   CLASS="--class $(echo ${GRUB_DISTRIBUTOR} | tr 'A-Z' 'a-z' | cut -d' ' -f1|LC_ALL=C sed 's,[^[:alnum:]_],_,g') ${CLASS}"
 fi
 

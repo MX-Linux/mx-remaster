@@ -5,11 +5,7 @@
 
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
-# Prefer the release name recorded by live-remaster so menu labels and
-# theming match the remastered filesystem; fall back to lsb-release.
-GRUB_DISTRIBUTOR="$(sed -n 's/^release:[[:space:]]*//p' /etc/live/version/linuxfs.ver 2>/dev/null | tail -n 1)"
-[ -n "$GRUB_DISTRIBUTOR" ] || GRUB_DISTRIBUTOR="$(sed -n 's/^title:[[:space:]]*//p' /etc/live/version/linuxfs.ver 2>/dev/null | tail -n 1)"
-[ -n "$GRUB_DISTRIBUTOR" ] || GRUB_DISTRIBUTOR="$(unset PRETTY_NAME; (. /etc/lsb-release; echo ${PRETTY_NAME:?}) 2>/dev/null || echo Debian)"
+GRUB_DISTRIBUTOR="$(unset PRETTY_NAME; (. /etc/lsb-release; echo ${PRETTY_NAME:?}) 2>/dev/null || echo Debian)"
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 GRUB_CMDLINE_LINUX=""
 
