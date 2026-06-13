@@ -1,35 +1,73 @@
 .TH LIVE-BOOT-REFRESH 1 "June 2026" "mx-remaster" "User Commands"
 .SH NAME
-live-boot-refresh \- refresh live USB boot labels and menu titles
+live-boot-refresh \- set the live USB boot menu title to the release name
 .SH SYNOPSIS
 .B live-boot-refresh
 .RI [ options "] [" mount-point ]
 .SH DESCRIPTION
-Update the visible release name on a live USB tree.
-The script rewrites the bootloader label metadata and refreshes menu titles in
-.BR GRUB ,
-isolinux, and syslinux configuration files when they are present.
+Set the live USB boot menus to the current release name.  This is useful after
+a remaster, when the running system reports a new release name but the boot
+menus still show the original one.
+.PP
+The release name is taken from
+.I /etc/lsb-release
+.RB ( DISTRIB_DESCRIPTION )
+when present, otherwise from
+.I /etc/os-release
+.RB ( PRETTY_NAME ).
+.PP
+It is written to:
+.RS
+.IP \(bu 2
+the title banner \(em the
+.B "MENU TITLE"
+line of the
+.B syslinux
+and
+.B isolinux
+configuration files and the
+.RB \(lq "Welcome to \&..." \(rq
+text of the
+.B GRUB
+theme files \(em as
+.RB \(lq "Welcome to " \c
+.IR release \(rq;
+and
+.IP \(bu 2
+the
+.RB \(lq live \(rq
+boot entry label \(em the
+.B "MENU LABEL"
+of the
+.B syslinux / isolinux
+.RB \(lq live \(rq
+entry and the
+.B GRUB
+.I menuentry
+tagged
+.B --id=linux
+\(em as
+.RI \(lq release " (" "current date" )\(rq.
+.RE
+.PP
+Other entries (Custom Boot, Memory Test, ...) and their existing build dates
+are left unchanged.
 .PP
 If
 .I mount-point
-is omitted, the live boot device is located automatically by its boot UUID and
-mounted read-write.  When the device is not present \(em for example after
-booting with
+is omitted, the partition holding the boot menus is located automatically \(em
+the BIOS/EFI
+.B GRUB
+partition, then the boot partition \(em and mounted if needed.  This includes
+the case where the device is not currently mounted, for example after booting
 .B toram
-and ejecting the media \(em you are prompted to plug it back in and try again.
-Auto-detection requires root and reads the live boot configuration, so it only
-works on a running live system; pass an explicit
+when boot-dev is empty.  A device that this command mounts is unmounted again
+on exit unless
+.B --keep-mounted
+is given.  Auto-detection requires root and reads the live boot configuration,
+so it only works on a running live system; pass an explicit
 .I mount-point
 otherwise.
-.PP
-The chosen tree must contain
-.B antiX/
-and
-.B boot/
-directories (an
-.B EFI/
-directory is used when present).
-
 .SH OPTIONS
 .TP
 .BR -h , " --help"
@@ -37,24 +75,38 @@ Show help.
 .TP
 .BR -n , " --dry-run"
 Show what would be changed without modifying files.
+.TP
+.BR -m , " --keep-mounted"
+Do not unmount a device that this command mounted.
 .SH FILES
 .TP
-.I linuxfs.ver
-Source of the new release/title string.
+.IR /etc/lsb-release ", " /etc/os-release
+Source of the release name
+.RB ( DISTRIB_DESCRIPTION ", then " PRETTY_NAME ).
+The copies under
+.I <mount-point>/etc
+are preferred when an explicit system tree is given.
 .TP
-.I bootloader-data
-Boot metadata file whose
-.B FULL_DISTRO_NAME
-entry is updated.
+.I boot/isolinux/*.cfg, boot/syslinux/*.cfg
+Menu configuration files whose
+.B "MENU TITLE"
+and
+.RB \(lq live \(rq
+.B "MENU LABEL"
+lines are updated in place.
 .TP
-.I grub.cfg
-GRUB menu file whose release labels are updated in place.
+.I boot/grub/grub.cfg, boot/grub/config/*.cfg
+GRUB menu files whose
+.RB \(lq live \(rq
+.I menuentry
+title
+.RB ( --id=linux )
+is updated in place.
 .TP
-.I isolinux.cfg
-Menu title file whose release label is updated in place.
-.TP
-.I syslinux.cfg
-Syslinux menu title file whose release label is updated in place.
+.I boot/grub/theme/*.txt
+GRUB theme files whose
+.RB \(lq "Welcome to \&..." \(rq
+banner text is updated in place.
 .SH SEE ALSO
 .BR live-remaster (1),
 .BR live-grubsave (1),
