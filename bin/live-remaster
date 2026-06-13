@@ -532,6 +532,13 @@ Version_Info_End
         finish_remaster
     fi
 
+    # Refresh the boot menu labels so they show the remastered release name.
+    # Non-fatal: the remaster has already succeeded by this point.
+    if [ -z "$SET_PRETEND" ] && which live-boot-refresh &>/dev/null; then
+        vmsg "Refreshing boot menu labels with live-boot-refresh"
+        live-boot-refresh >> $LOG_FILE 2>&1 || vmsg "live-boot-refresh failed (non-fatal)"
+    fi
+
     info_box -c                                             \
         "$(gt "Created new compressed filesystem file:")"   \
         "[f]$new_file[/]"                                   \

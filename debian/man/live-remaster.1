@@ -18,6 +18,13 @@ option handling.
 
 The remaster can be run in a general mode, where personal data is excluded, or
 in a personal mode, where user settings are kept.
+.PP
+On a successful remaster (except in
+.B --pretend
+mode) it runs
+.BR live-boot-refresh (1)
+to update the boot menu labels to the current release name.  This step is
+non-fatal: a failure is logged but does not fail the remaster.
 .SH OPTIONS
 .TP
 .BR -p , " --pretend"
@@ -75,6 +82,7 @@ Boot device mount used by the remaster workflow.
 .BR installed-to-live (1),
 .BR persist-makefs (1),
 .BR live-grubsave (1),
+.BR live-boot-refresh (1),
 .BR mksquashfs (1)
 .SH AUTHOR
 mx-remaster maintainers
