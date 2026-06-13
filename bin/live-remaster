@@ -533,15 +533,27 @@ Version_Info_End
     fi
 
     # Refresh the boot menu labels so they show the remastered release name.
-    # Non-fatal: the remaster has already succeeded by this point.
+    # Non-fatal: the remaster has already succeeded by this point.  Use qmsg so
+    # the activity is shown on screen (and logged), unlike vmsg (verbose only).
+    local release_line=""
     if [ -z "$SET_PRETEND" ] && which live-boot-refresh &>/dev/null; then
-        vmsg "Refreshing boot menu labels with live-boot-refresh"
-        live-boot-refresh >> $LOG_FILE 2>&1 || vmsg "live-boot-refresh failed (non-fatal)"
+        qmsg "$(gt "Refreshing boot menu labels")"
+        local lbr_out lbr_ret boot_release
+        lbr_out=$(live-boot-refresh 2>&1); lbr_ret=$?
+        [ -n "$lbr_out" ] && qmsg "$lbr_out"
+        [ "$lbr_ret" -eq 0 ] || qmsg "$(gt "(boot label refresh reported a problem; this is non-fatal)")"
+
+        # Surface the stamped release name in the success box below so it is
+        # visible even in GUI mode; read it back from live-boot-refresh's
+        # output so it matches exactly what was written to the menus.
+        boot_release=$(printf '%s\n' "$lbr_out" | sed -n 's/^new release title: //p' | tail -n 1)
+        [ -n "$boot_release" ] && release_line="$(pfgt "Remastered release: %s" "[b]$boot_release[/]")"
     fi
 
     info_box -c                                             \
         "$(gt "Created new compressed filesystem file:")"   \
         "[f]$new_file[/]"                                   \
+        "$release_line"                                     \
         "[fixed]"                                           \
         "${main_text[@]}"                                   \
         "[/]"                                               \
