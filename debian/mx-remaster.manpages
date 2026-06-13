@@ -10,3 +10,4 @@ debian/man/run-mksquashfs.1
 debian/man/du-excludes.1
 debian/man/persist-enabled.1
 debian/man/id_version.1
+debian/man/live-boot-refresh.1

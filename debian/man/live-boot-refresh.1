@@ -1,0 +1,63 @@
+.TH LIVE-BOOT-REFRESH 1 "June 2026" "mx-remaster" "User Commands"
+.SH NAME
+live-boot-refresh \- refresh live USB boot labels and menu titles
+.SH SYNOPSIS
+.B live-boot-refresh
+.RI [ options "] [" mount-point ]
+.SH DESCRIPTION
+Update the visible release name on a live USB tree.
+The script rewrites the bootloader label metadata and refreshes menu titles in
+.BR GRUB ,
+isolinux, and syslinux configuration files when they are present.
+.PP
+If
+.I mount-point
+is omitted, the live boot device is located automatically by its boot UUID and
+mounted read-write.  When the device is not present \(em for example after
+booting with
+.B toram
+and ejecting the media \(em you are prompted to plug it back in and try again.
+Auto-detection requires root and reads the live boot configuration, so it only
+works on a running live system; pass an explicit
+.I mount-point
+otherwise.
+.PP
+The chosen tree must contain
+.B antiX/
+and
+.B boot/
+directories (an
+.B EFI/
+directory is used when present).
+
+.SH OPTIONS
+.TP
+.BR -h , " --help"
+Show help.
+.TP
+.BR -n , " --dry-run"
+Show what would be changed without modifying files.
+.SH FILES
+.TP
+.I linuxfs.ver
+Source of the new release/title string.
+.TP
+.I bootloader-data
+Boot metadata file whose
+.B FULL_DISTRO_NAME
+entry is updated.
+.TP
+.I grub.cfg
+GRUB menu file whose release labels are updated in place.
+.TP
+.I isolinux.cfg
+Menu title file whose release label is updated in place.
+.TP
+.I syslinux.cfg
+Syslinux menu title file whose release label is updated in place.
+.SH SEE ALSO
+.BR live-remaster (1),
+.BR live-grubsave (1),
+.BR live-setup (1)
+.SH AUTHOR
+mx-remaster maintainers

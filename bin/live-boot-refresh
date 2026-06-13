@@ -1,0 +1,290 @@
+#!/usr/bin/bash
+
+# need bash
+[ -z "${BASH_VERSION:-}" ] && exec "$0" "$@"
+
+# GETTEXT_KEYWORD="gt"
+# GETTEXT_KEYWORD="pf"
+# GETTEXT_KEYWORD="pfgt"
+# GETTEXT_KEYWORD="error_box_pf"
+
+# The antiX helper library gives us read_conf, mount_if_needed, make_readwrite,
+# error_box and the gettext wrappers.  It is sourced before "set -u" because it
+# is not written for nounset; library calls below are wrapped in "set +u".
+if [[ -e "/usr/local/lib/antiX/antiX-common.sh" ]]; then
+    # shellcheck disable=SC1091
+    source /usr/local/lib/antiX/antiX-common.sh "$@"
+else
+    # shellcheck disable=SC1091
+    source /usr/lib/antiX/antiX-common.sh "$@"
+fi
+
+set -u
+
+ME=${0##*/}
+PATH=/usr/local/bin:/usr/bin:/usr/sbin
+export PATH
+
+usage() {
+cat <<USAGE
+Usage: ${ME} [options] [mount-point]
+
+Update boot menu labels on a live USB tree.
+
+If <mount-point> is omitted the live boot device is located automatically by
+its boot UUID and mounted.  When it is not present -- for example after booting
+with 'toram' and ejecting the device -- you are prompted to plug it back in.
+
+The script refreshes the visible release name in:
+  - bootloader-data (FULL_DISTRO_NAME)
+  - grub.cfg and related *.cfg files
+  - isolinux.cfg / syslinux.cfg menu titles
+  - linuxfs.ver release/title fields when present
+
+Options:
+    -h|--help         Show this help
+    -n|--dry-run      Show what would be changed
+
+USAGE
+exit "${1:-1}"
+}
+
+die() {
+    printf '%s: %s\n' "$ME" "$*" >&2
+    exit 1
+}
+
+log() {
+    printf '%s\n' "$*"
+}
+
+backup_once() {
+    local file=$1 bak=${1}.bak
+    [[ -e "$bak" ]] || cp -a -- "$file" "$bak"
+}
+
+# Locate and mount the live boot device, mirroring live-remaster's
+# check_boot_uuid: find it by BOOT_UUID and prompt to plug it in when missing
+# (the toram case), then mount it read-write.  Sets DETECTED_MP on success.
+detect_boot_mp() {
+    [[ $(id -u) -eq 0 ]] || die "auto-detecting the live device needs root; re-run with sudo or pass a mount-point"
+
+    # antiX-common.sh is not nounset-safe.
+    set +u
+
+    read_conf -q || error_box_pf "This script can only be run on a %s system." "live-usb/HD"
+    [[ -n "$BOOT_UUID" ]] || error_box_pf "Could not determine the live-usb device (no %s in the config)." "BOOT_UUID"
+
+    local uuid_dev
+    uuid_dev=$(blkid -U "$BOOT_UUID" -c /dev/null)
+    [[ -n "$uuid_dev" ]] || error_box \
+        "$(pf $"The live-usb device with UUID %s was not found" "[n]${BOOT_UUID}[/]")" \
+        "$(gt "Please plug in the live-usb device and try again")"
+
+    BOOT_DEV=$uuid_dev
+    : "${BOOT_MP:=/live/boot-dev}"
+
+    mount_if_needed "$BOOT_DEV" "$BOOT_MP"
+    make_readwrite "$BOOT_MP" 2 || error_box_pf "The live file system is read-only.  Cannot refresh boot labels."
+
+    DETECTED_MP=$BOOT_MP
+    set -u
+}
+
+# Make sure we are pointed at a live boot tree and not some unrelated directory.
+validate_tree() {
+    local root=$1
+
+    [[ -d "$root" ]] || die "mount-point not found: $root"
+    [[ -d "$root/antiX" && -d "$root/boot" ]] \
+        || die "not a live boot tree (missing antiX/ or boot/): $root"
+    [[ -d "$root/EFI" ]] || log "note: no EFI/ directory under $root (legacy BIOS media?)"
+}
+
+read_version_title() {
+    local vf=$1 title
+
+    [[ -r "$vf" ]] || return 1
+    title=$(sed -n 's/^release:[[:space:]]*//p' "$vf" | tail -n 1)
+    [[ -n "$title" ]] || title=$(sed -n 's/^title:[[:space:]]*//p' "$vf" | tail -n 1)
+    [[ -n "$title" ]] || return 1
+    printf '%s\n' "$title"
+}
+
+read_bootloader_title() {
+    local file=$1 title
+
+    [[ -r "$file" ]] || return 1
+    title=$(sed -n 's/^[[:space:]]*FULL_DISTRO_NAME="\(.*\)"[[:space:]]*$/\1/p' "$file" | tail -n 1)
+    [[ -n "$title" ]] || return 1
+    printf '%s\n' "$title"
+}
+
+read_grub_title() {
+    local file=$1 title
+
+    [[ -r "$file" ]] || return 1
+    title=$(sed -n "s/^submenu 'Advanced options for \(.*\)' {$/\1/p" "$file" | head -n 1)
+    [[ -n "$title" ]] || title=$(sed -n "s/^menuentry '\([^']*\)'.*/\1/p" "$file" | head -n 1)
+    [[ -n "$title" ]] || return 1
+    printf '%s\n' "$title"
+}
+
+read_menu_title() {
+    local file=$1 title
+
+    [[ -r "$file" ]] || return 1
+    title=$(sed -n 's/^[[:space:]]*menu title[[:space:]]*//p' "$file" | head -n 1)
+    [[ -n "$title" ]] || return 1
+    printf '%s\n' "$title"
+}
+
+replace_exact() {
+    local file=$1 old=$2 new=$3
+
+    [[ -n "$old" ]] || return 0
+    [[ -r "$file" ]] || return 0
+
+    if [[ -n "${DRY_RUN:-}" ]]; then
+        log "would update: $file"
+        return 0
+    fi
+
+    backup_once "$file"
+    OLD_TEXT=$old NEW_TEXT=$new perl -0pi -e 's/\Q$ENV{OLD_TEXT}\E/$ENV{NEW_TEXT}/g' -- "$file"
+}
+
+replace_menu_title_line() {
+    local file=$1 new=$2
+
+    [[ -r "$file" ]] || return 0
+
+    if [[ -n "${DRY_RUN:-}" ]]; then
+        log "would update: $file"
+        return 0
+    fi
+
+    backup_once "$file"
+    NEW_TEXT=$new perl -0pi -e 's/^([[:space:]]*menu title[[:space:]]*).*$/$1$ENV{NEW_TEXT}/m' -- "$file"
+}
+
+update_bootloader_data() {
+    local file=$1 new=$2
+
+    [[ -r "$file" ]] || return 0
+
+    if [[ -n "${DRY_RUN:-}" ]]; then
+        log "would update: $file"
+        return 0
+    fi
+
+    backup_once "$file"
+    NEW_TEXT=$new perl -0pi -e 's/^[[:space:]]*FULL_DISTRO_NAME=.*$/ FULL_DISTRO_NAME="$ENV{NEW_TEXT}"/m' -- "$file"
+}
+
+update_version_file() {
+    local file=$1 new=$2
+
+    [[ -r "$file" ]] || return 0
+
+    if [[ -n "${DRY_RUN:-}" ]]; then
+        log "would update: $file"
+        return 0
+    fi
+
+    backup_once "$file"
+    NEW_TEXT=$new perl -0pi -e 's/^(release:)[[:space:]]*.*/$1 $ENV{NEW_TEXT}/m; s/^(title:)[[:space:]]*.*/$1 $ENV{NEW_TEXT}/m' -- "$file"
+}
+
+main() {
+    local root='' vf='' new_title='' old_title='' file
+    local -a cfg_files=()
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                usage 0
+                ;;
+            -n|--dry-run)
+                DRY_RUN=1
+                ;;
+            -*)
+                die "unknown option: $1"
+                ;;
+            *)
+                [[ -z "$root" ]] || die "only one mount-point may be given"
+                root=$1
+                ;;
+        esac
+        shift
+    done
+
+    if [[ -z "$root" ]]; then
+        detect_boot_mp
+        root=$DETECTED_MP
+        log "using live boot device mounted at: $root"
+    fi
+
+    validate_tree "$root"
+
+    for vf in \
+        "$root/antiX/linuxfs.ver" \
+        "$root/boot/linuxfs.ver" \
+        "$root/linuxfs.ver" \
+        "$root/antiX/version/linuxfs.ver"
+    do
+        if [[ -r "$vf" ]]; then
+            new_title=$(read_version_title "$vf") || true
+            [[ -n "$new_title" ]] && break
+        fi
+    done
+
+    [[ -n "$new_title" ]] || die "could not find a linuxfs.ver title under $root"
+
+    for file in \
+        "$root/boot/bootloader-data" \
+        "$root/antiX/bootloader-data" \
+        "$root/boot/grub/bootloader-data" \
+        "$root/boot/grub/grub.cfg" \
+        "$root/boot/isolinux/isolinux.cfg" \
+        "$root/boot/syslinux/syslinux.cfg"
+    do
+        [[ -r "$file" ]] && cfg_files+=("$file")
+    done
+
+    if [[ ${#cfg_files[@]} -eq 0 ]]; then
+        while IFS= read -r -d '' file; do
+            cfg_files+=("$file")
+        done < <(find "$root" -type f \( -name 'bootloader-data' -o -name 'grub.cfg' -o -name 'isolinux.cfg' -o -name 'syslinux.cfg' -o -name 'linuxfs.ver' \) -print0)
+    fi
+
+    for file in "${cfg_files[@]}"; do
+        case $file in
+            *bootloader-data)
+                [[ -z "$old_title" ]] && old_title=$(read_bootloader_title "$file" || true)
+                update_bootloader_data "$file" "$new_title"
+                ;;
+            *linuxfs.ver)
+                update_version_file "$file" "$new_title"
+                ;;
+            *grub.cfg)
+                [[ -z "$old_title" ]] && old_title=$(read_grub_title "$file" || true)
+                replace_exact "$file" "$old_title" "$new_title"
+                ;;
+            *isolinux.cfg|*syslinux.cfg)
+                [[ -z "$old_title" ]] && old_title=$(read_menu_title "$file" || true)
+                if [[ -n "$old_title" ]]; then
+                    replace_exact "$file" "$old_title" "$new_title"
+                else
+                    replace_menu_title_line "$file" "$new_title"
+                fi
+                ;;
+        esac
+    done
+
+    log "new release title: $new_title"
+    [[ -n "$old_title" ]] && log "old release title: $old_title"
+    log "done"
+}
+
+main "$@"
