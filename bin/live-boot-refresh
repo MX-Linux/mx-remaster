@@ -271,6 +271,25 @@ update_grub_menuentry() {
     NEW_TEXT=$text perl -i -pe 's/^(menuentry\s+")[^"]* \([A-Z][a-z]+ \d{1,2}, \d{4}\)([ \t]*\([^)]*\))?(")/$1 $ENV{NEW_TEXT}$2$3/' -- "$file"
 }
 
+# Rewrite the dated OS lines in a gfxboot readme.msg -- the column-aligned text
+# gfxboot actually shows ("   live   <name> (<date>) (<init>)").  Keeps the
+# leading label column and any trailing init marker; non-dated lines are left
+# alone.  [ \t] (not \s) so the line's newline is preserved.
+update_readme_msg() {
+    local file=$1 text=$2
+
+    [[ -r "$file" ]] || return 0
+    grep -qE '\([A-Z][a-z]+ [0-9]{1,2}, [0-9]{4}\)' "$file" || return 0
+
+    if [[ -n "${DRY_RUN:-}" ]]; then
+        log "would update readme: $file"
+        return 0
+    fi
+
+    backup_once "$file"
+    NEW_TEXT=$text perl -i -pe 's/^([ \t]+\S+[ \t]+).* \([A-Z][a-z]+ \d{1,2}, \d{4}\)([ \t]*\([^)]*\))?[ \t]*$/$1$ENV{NEW_TEXT}$2/' -- "$file"
+}
+
 main() {
     local root='' new_title='' file
 
@@ -339,6 +358,11 @@ main() {
 
     for file in "$root"/boot/grub/grub.cfg "$root"/boot/grub/config/*.cfg; do
         [[ -f "$file" ]] && update_grub_menuentry "$file" "$label_text"
+    done
+
+    # gfxboot shows readme.msg as the graphical syslinux/isolinux menu text.
+    for file in "$root"/boot/isolinux/readme.msg "$root"/boot/syslinux/readme.msg; do
+        [[ -f "$file" ]] && update_readme_msg "$file" "$label_text"
     done
 
     log "new release title: $new_title"

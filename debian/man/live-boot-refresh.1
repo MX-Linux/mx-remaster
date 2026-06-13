@@ -36,11 +36,12 @@ and
 .IP \(bu 2
 the OS boot entry labels \(em every
 .B syslinux / isolinux
-.B "MENU LABEL"
-and
+.BR "MENU LABEL" ,
 .B GRUB
-.I menuentry
-that carries a build date (the
+.IR menuentry ,
+and gfxboot
+.I readme.msg
+line that carries a build date (the
 .B sysvinit
 and
 .B systemd
@@ -101,6 +102,10 @@ lines are updated in place.
 GRUB menu files whose dated
 .I menuentry
 titles are updated in place.
+.TP
+.I boot/isolinux/readme.msg, boot/syslinux/readme.msg
+gfxboot menu text (what is drawn on screen) whose dated entry lines are
+updated in place.
 .TP
 .I boot/grub/theme/*.txt
 GRUB theme files whose
