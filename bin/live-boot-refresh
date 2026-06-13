@@ -232,35 +232,35 @@ update_theme_text() {
     NEW_TEXT=$new perl -i -pe 's/(Welcome to\s+)[^"]*?(!?)"/$1$ENV{NEW_TEXT}$2"/' -- "$file"
 }
 
-# Rewrite the MENU LABEL of the "live" boot entry in a syslinux/isolinux cfg,
-# leaving the function entries (Custom_Boot, Memory_Test, ...) alone.  Uses a
-# state flag: arm on "LABEL live", replace the next MENU LABEL, then disarm.
+# Rewrite the OS boot-entry MENU LABEL(s) in a syslinux/isolinux cfg.  The OS
+# entries are the ones carrying a build date like "(May 24, 2026)"; the function
+# entries (Memory_Test, ...) have none and are left alone.  The name and date
+# are replaced while a trailing init marker -- " (sysvinit)" / " (systemd)" -- is
+# kept, so the sysvinit and systemd entries stay distinct.  Handles any number.
 update_menu_label() {
     local file=$1 text=$2
 
     [[ -r "$file" ]] || return 0
-    grep -qiE '^[[:space:]]*LABEL[[:space:]]+live([[:space:]]|$)' "$file" || return 0
+    grep -qE '\([A-Z][a-z]+ [0-9]{1,2}, [0-9]{4}\)' "$file" || return 0
 
     if [[ -n "${DRY_RUN:-}" ]]; then
         log "would update menu label: $file"
         return 0
     fi
 
+    # [ \t] (not \s) for trailing/optional space so the line's newline is kept.
     backup_once "$file"
-    NEW_TEXT=$text perl -i -pe '
-        if    (/^\s*LABEL\s+live\b/i) { $in = 1 }
-        elsif (/^\s*LABEL\b/i)        { $in = 0 }
-        if ($in && s/^(\s*MENU\s+LABEL\s+).*/$1$ENV{NEW_TEXT}/i) { $in = 0 }
-    ' -- "$file"
+    NEW_TEXT=$text perl -i -pe 's/^([ \t]*MENU[ \t]+LABEL[ \t]+).* \([A-Z][a-z]+ \d{1,2}, \d{4}\)([ \t]*\([^)]*\))?[ \t]*$/$1$ENV{NEW_TEXT}$2/i' -- "$file"
 }
 
-# Rewrite the title of the live grub menuentry (the one tagged --id=linux),
-# preserving its leading space and everything after the title.  No-op if absent.
+# Rewrite the OS grub menuentry title(s) -- again identified by the build date,
+# preserving the leading space, a trailing init marker, and everything after the
+# quoted title.  Skips commented (#menuentry) and non-OS entries.  Any number.
 update_grub_menuentry() {
     local file=$1 text=$2
 
     [[ -r "$file" ]] || return 0
-    grep -qE '^menuentry[[:space:]].*--id=linux([[:space:]]|$)' "$file" || return 0
+    grep -qE '^menuentry[[:space:]].*\([A-Z][a-z]+ [0-9]{1,2}, [0-9]{4}\)' "$file" || return 0
 
     if [[ -n "${DRY_RUN:-}" ]]; then
         log "would update grub menuentry: $file"
@@ -268,7 +268,7 @@ update_grub_menuentry() {
     fi
 
     backup_once "$file"
-    NEW_TEXT=$text perl -i -pe 's/^(menuentry\s+")[^"]*(".*--id=linux)/$1 $ENV{NEW_TEXT}$2/' -- "$file"
+    NEW_TEXT=$text perl -i -pe 's/^(menuentry\s+")[^"]* \([A-Z][a-z]+ \d{1,2}, \d{4}\)([ \t]*\([^)]*\))?(")/$1 $ENV{NEW_TEXT}$2$3/' -- "$file"
 }
 
 main() {
@@ -329,9 +329,10 @@ main() {
         [[ -f "$file" ]] && update_theme_text "$file" "$new_title"
     done
 
-    # Live boot entry label -> "<release> (<current date>)":
-    #   - syslinux/isolinux MENU LABEL of the "live" entry
-    #   - grub menuentry tagged --id=linux
+    # OS boot entry labels -> "<release> (<current date>)[ (<init marker>)]":
+    #   - syslinux/isolinux MENU LABEL lines that carry a build date
+    #   - grub menuentry titles that carry a build date
+    # (both the sysvinit and systemd variants, keeping their init markers)
     for file in "$root"/boot/isolinux/*.cfg "$root"/boot/syslinux/*.cfg; do
         [[ -f "$file" ]] && update_menu_label "$file" "$label_text"
     done

@@ -34,24 +34,27 @@ theme files \(em as
 .IR release \(rq;
 and
 .IP \(bu 2
-the
-.RB \(lq live \(rq
-boot entry label \(em the
-.B "MENU LABEL"
-of the
+the OS boot entry labels \(em every
 .B syslinux / isolinux
-.RB \(lq live \(rq
-entry and the
+.B "MENU LABEL"
+and
 .B GRUB
 .I menuentry
-tagged
-.B --id=linux
-\(em as
-.RI \(lq release " (" "current date" )\(rq.
+that carries a build date (the
+.B sysvinit
+and
+.B systemd
+variants) \(em as
+.RI \(lq release " (" "current date" )\(rq,
+keeping any trailing
+.RB \(lq (sysvinit) \(rq
+or
+.RB \(lq (systemd) \(rq
+marker.
 .RE
 .PP
-Other entries (Custom Boot, Memory Test, ...) and their existing build dates
-are left unchanged.
+Entries without a build date (Custom Boot, Memory Test, integrity check, ...)
+are left unchanged, as are commented-out entries.
 .PP
 If
 .I mount-point
@@ -90,18 +93,14 @@ are preferred when an explicit system tree is given.
 .I boot/isolinux/*.cfg, boot/syslinux/*.cfg
 Menu configuration files whose
 .B "MENU TITLE"
-and
-.RB \(lq live \(rq
+and dated
 .B "MENU LABEL"
 lines are updated in place.
 .TP
 .I boot/grub/grub.cfg, boot/grub/config/*.cfg
-GRUB menu files whose
-.RB \(lq live \(rq
+GRUB menu files whose dated
 .I menuentry
-title
-.RB ( --id=linux )
-is updated in place.
+titles are updated in place.
 .TP
 .I boot/grub/theme/*.txt
 GRUB theme files whose
