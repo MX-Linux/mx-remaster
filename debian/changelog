@@ -1,3 +1,13 @@
+mx-remaster (26.06.02mx25) mx; urgency=medium
+
+  * after a remaster, the live USB boot menus now show the new release
+    name automatically
+  * new "live-boot-refresh" tool to refresh the release name shown in
+    the live USB boot menus (GRUB, syslinux and isolinux) at any time
+  * add manual pages for the command-line tools
+
+ -- Adrian <adrian@mxlinux.org>  Sat, 13 Jun 2026 21:20:48 -0400
+
 mx-remaster (26.06.01mx25) mx; urgency=medium
 
   [ live-remaster ]
