@@ -41,7 +41,9 @@ mounted and boot-dev is empty.  It is unmounted again on exit unless --keep-
 mounted is given.
 
 The release name is taken from lsb-release (DISTRIB_DESCRIPTION) when present,
-otherwise from os-release (PRETTY_NAME).  It is written to:
+otherwise from os-release (PRETTY_NAME).  When an explicit live USB boot tree
+is given and it has no /etc metadata, the existing dated boot labels in that
+tree are used instead.  It is written to:
   - syslinux / isolinux "MENU TITLE" and grub theme "Welcome to ..." banners
     (as "Welcome to <release>")
   - the "live" boot entry label (syslinux/isolinux MENU LABEL and the grub
@@ -169,28 +171,60 @@ validate_tree() {
         || die "no live boot menus under $root (expected boot/grub/config, boot/syslinux or boot/isolinux)"
 }
 
-# Resolve the release name to stamp into the menus.  Prefer the lsb-release
+# Resolve the release name from a system tree.  Prefer the lsb-release
 # description (the distro branding, e.g. "MX 23.6 Libretto"), then fall back to
-# the os-release pretty name.  Looks under the given tree first (an explicit
-# full system tree), then at the running system's files.
+# the os-release pretty name.  Looks only under the given tree; callers decide
+# whether falling back to the running system is correct for their use case.
 get_release_name() {
     local root=$1 release='' f
 
-    for f in "$root/etc/lsb-release" "/etc/lsb-release"; do
-        [[ -r "$f" ]] || continue
+    f="$root/etc/lsb-release"
+    if [[ -r "$f" ]]; then
         release=$(sed -n 's/^DISTRIB_DESCRIPTION=//p' "$f" | tail -n 1)
-        [[ -n "$release" ]] && break
-    done
+    fi
     if [[ -z "$release" ]]; then
-        for f in "$root/etc/os-release" "/etc/os-release"; do
-            [[ -r "$f" ]] || continue
+        f="$root/etc/os-release"
+        if [[ -r "$f" ]]; then
             release=$(sed -n 's/^PRETTY_NAME=//p' "$f" | tail -n 1)
-            [[ -n "$release" ]] && break
-        done
+        fi
     fi
 
     release=${release#\"}
     release=${release%\"}
+    [[ -n "$release" ]] || return 1
+    printf '%s\n' "$release"
+}
+
+# Resolve the release name from existing dated live boot labels in a boot tree.
+# This is for an explicitly mounted USB boot partition, which normally has no
+# /etc metadata.  Strip the old build date and any sysvinit/systemd marker.
+get_menu_release_name() {
+    local root=$1 file release=''
+
+    for file in "$root"/boot/grub/grub.cfg "$root"/boot/grub/config/*.cfg \
+        "$root"/boot/isolinux/isolinux.cfg "$root"/boot/syslinux/syslinux.cfg \
+        "$root"/boot/isolinux/readme.msg "$root"/boot/syslinux/readme.msg; do
+        [[ -r "$file" ]] || continue
+        release=$(perl -ne '
+            next if /^\s*#/;
+            next unless /\([A-Z][a-z]+ \d{1,2}, \d{4}\)/;
+            my $s = "";
+            if (/^menuentry\s+"([^"]*)"/) {
+                $s = $1;
+            } elsif (/^\s*MENU\s+LABEL\s+(.*)$/i) {
+                $s = $1;
+            } elsif (/^\s+\S+\s+(.*)$/) {
+                $s = $1;
+            }
+            next unless length $s;
+            $s =~ s/\s*\([A-Z][a-z]+ \d{1,2}, \d{4}\)//;
+            $s =~ s/\s*\((?:sysvinit|systemd)\)\s*$//;
+            $s =~ s/^\s+|\s+$//g;
+            if (length $s) { print "$s\n"; exit 0; }
+        ' -- "$file")
+        [[ -n "$release" ]] && break
+    done
+
     [[ -n "$release" ]] || return 1
     printf '%s\n' "$release"
 }
@@ -291,7 +325,7 @@ update_readme_msg() {
 }
 
 main() {
-    local root='' new_title='' file
+    local root='' new_title='' file explicit_root=0
 
     trap cleanup EXIT
 
@@ -312,6 +346,7 @@ main() {
             *)
                 [[ -z "$root" ]] || die "only one mount-point may be given"
                 root=$1
+                explicit_root=1
                 ;;
         esac
         shift
@@ -325,10 +360,20 @@ main() {
 
     validate_tree "$root"
 
-    # The release name comes from lsb-release (preferred) or os-release, not
-    # from the boot device itself.
-    new_title=$(get_release_name "$root") \
-        || die "could not determine the release name from lsb-release or os-release"
+    # Prefer release metadata from a full target tree.  For an explicitly mounted
+    # live USB boot tree (usually no /etc), reuse its existing dated boot labels
+    # instead of the host's /etc, so refreshing an older USB does not stamp it
+    # with the host release.  Auto-detected live media still falls back to the
+    # running live system's /etc so remaster labels use the remastered release.
+    if ! new_title=$(get_release_name "$root"); then
+        if [[ $explicit_root -eq 1 ]]; then
+            new_title=$(get_menu_release_name "$root") \
+                || die "could not determine the release name from target metadata or boot menus"
+        else
+            new_title=$(get_release_name "") \
+                || die "could not determine the release name from lsb-release or os-release"
+        fi
+    fi
 
     # Per-entry OS label gets the release name plus the current date, matching
     # the original "<name> (<date>)" style, e.g. "... (June 13, 2026)".
