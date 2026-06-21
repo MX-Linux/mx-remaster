@@ -15,6 +15,11 @@ The release name is taken from
 when present, otherwise from
 .I /etc/os-release
 .RB ( PRETTY_NAME ).
+When an explicit live USB boot tree is given and it has no
+.I etc
+metadata, the existing dated boot labels in that tree are used instead.  This
+prevents an older mounted USB from being relabeled with the host system's
+release name.
 .PP
 It is written to:
 .RS
@@ -89,7 +94,8 @@ Source of the release name
 .RB ( DISTRIB_DESCRIPTION ", then " PRETTY_NAME ).
 The copies under
 .I <mount-point>/etc
-are preferred when an explicit system tree is given.
+are preferred when an explicit system tree is given; otherwise an explicit boot
+tree falls back to its existing dated boot labels.
 .TP
 .I boot/isolinux/isolinux.cfg, boot/syslinux/syslinux.cfg
 Main menu configuration files whose
