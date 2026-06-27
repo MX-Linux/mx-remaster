@@ -1,0 +1,322 @@
+mx-remaster (26.06.02mx23) mx; urgency=medium
+
+  * after a remaster, the live USB boot menus now show the new release
+    name automatically
+  * new "live-boot-refresh" tool to refresh the release name shown in
+    the live USB boot menus (GRUB, syslinux and isolinux) at any time
+  * add manual pages for the command-line tools
+
+ -- Adrian <adrian@mxlinux.org>  Sat, 13 Jun 2026 21:20:48 -0400
+
+mx-remaster (26.06.01mx23) mx; urgency=medium
+
+  [ live-remaster ]
+  * inject amd/intel microcode into live initrd(s) after remaster
+    if uc-tool (package uc-tool-mx) is available
+  * respect LKU per-vendor flag files to selectively skip vendors:
+    /etc/live-kernel-updater/no-ucode-amd
+    /etc/live-kernel-updater/no-ucode-intel
+  * add --no-ucode[=<list>] option to live-remaster to skip microcode refresh;
+    <list>: amd, intel, or amd,intel (default: both)
+  * add --version option to live-remaster
+
+
+ -- fehlix <fehlix@mxlinux.org>  Fri, 12 Jun 2026 04:50:00 -0400
+
+mx-remaster (25.12.02mx23) mx; urgency=medium
+
+  * add blank /var/lib/sddm/state.conf file to general-files
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 23 Dec 2025 20:35:23 -0500
+
+mx-remaster (25.12.01mx23) mx; urgency=medium
+
+  * update installed-to-live to work with new snapshot overlay layering
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 21 Dec 2025 17:16:11 -0500
+ 
+mx-remaster (24.05.01mx23) mx; urgency=medium
+
+  * add zstd (adrian) to live-remaster
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 12 May 2024 12:50:21 -0400
+
+mx-remaster (24.03.01mx23) mx; urgency=medium
+
+  * systemd workaround adjustments
+  * persist-save
+  * persist-config
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 21 Mar 2024 20:52:40 -0400
+
+mx-remaster (24.02.01mx23) mx; urgency=medium
+
+  * simplify systemd service work-around trigger conditions
+  * make sure rc.local exits under system before switching to tty 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 29 Feb 2024 20:01:42 -0500
+
+mx-remaster (24.01.01mx23) mx; urgency=medium
+
+  * catchup to remaster-antix 0.8.15
+  * update translations
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 17 Jan 2024 19:33:52 -0500
+
+mx-remaster (23.12.01mx23) mx; urgency=medium
+
+  * set papersize in rc.local
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 10 Dec 2023 23:47:54 -0500
+
+mx-remaster (23.10.01mx23) mx; urgency=medium
+
+  * update default grub file
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 14 Oct 2023 16:46:03 -0400
+
+mx-remaster (23.05.02mx23) mx; urgency=medium
+
+  * update 30-os_prober 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 07 Aug 2023 20:48:55 -0400
+
+mx-remaster (23.05.01) mx; urgency=medium
+
+  * update live-grubsave for spaces and double quotes (fehlix)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 18 May 2023 22:18:57 -0400
+
+mx-remaster (23.02.02mx21) mx; urgency=medium
+
+  * revese maksing initrd.target
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 20 Feb 2023 19:47:21 -0500
+
+mx-remaster (23.02.01mx21) mx; urgency=medium
+
+  * mask initrd.target 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 20 Feb 2023 10:22:47 -0500
+
+mx-remaster (23.01.03mx21) mx; urgency=medium
+
+  * on user reset, respect Default shell set in /etc/adduser.conf
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 11 Jan 2023 19:23:14 -0500
+
+mx-remaster (23.01.02mx21) mx; urgency=medium
+
+  [fehlix]
+  * additional shell checks in installed to live
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 03 Jan 2023 22:33:56 -0500
+
+mx-remaster (23.01.01mx21) mx; urgency=medium
+
+  * update "installed-to-live" to deal with adduser 3.130 changes 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 01 Jan 2023 14:35:01 -0500
+
+mx-remaster (22.12.01mx21) mx; urgency=medium
+
+  [fehlix]
+  * live-grubsave adjustment for some paramter and also ignore builit-in kernel parameter
+  * perists-makefs to als label rootfs/homefs properly
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 27 Dec 2022 21:06:00 -0500
+
+mx-remaster (22.11.01mx21) mx; urgency=medium
+
+  [fehlix]
+  * update installed-to-live to deal with more than two users
+
+  [dolphin]
+  * update control file depends to include perl-base
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 06 Nov 2022 20:15:37 -0500
+
+mx-remaster (22.05.01mx21) mx; urgency=medium
+
+  * edit error text on "shutdown" or "reboot" command for --shutdown
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 14 May 2022 18:43:50 -0400
+
+mx-remaster (22.04.01mx21) mx; urgency=medium
+
+  * remove slim.conf (mx)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 02 Apr 2022 10:19:08 -0400
+
+mx-remaster (22.03.03mx21) mx; urgency=medium
+
+  * systemd support for those that remove systemd-shim (rough) 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 19 Mar 2022 17:06:37 -0400
+
+mx-remaster (22.03.02mx21) mx; urgency=medium
+
+  * update run-mksquashfs to source live/config/initrd.out
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 12 Mar 2022 21:48:10 -0500
+
+mx-remaster (22.03.01mx21) mx; urgency=medium
+
+  * add uncompressed file size info 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 12 Mar 2022 21:18:02 -0500
+
+mx-remaster (21.10.02mx21) mx; urgency=medium
+
+  * update live-grubsave
+  * generate machine-id with /etc/rc.local
+
+ -- fehlix <fehlix@mxlinux.org>  Mon, 11 Oct 2021 13:22:47 +0000
+
+mx-remaster (21.10.01mx21) mx; urgency=medium
+
+  * remove default keyboard  
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 07 Oct 2021 23:19:56 -0400
+
+mx-remaster (21.09.01mx21) mx; urgency=medium
+
+  * move some default files around
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 23 Sep 2021 23:06:15 -0400
+
+mx-remaster (21.08.01mx21) mx; urgency=medium
+
+  * update live-grubsave features (fehlix) 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 25 Aug 2021 18:43:34 -0400
+
+mx-remaster (21.07.01mx21) mx; urgency=medium
+
+  * update live-grubsave (fehlix)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 17 Jul 2021 21:40:34 -0400
+
+mx-remaster (21.06.01mx21) mx; urgency=medium
+
+  * update to latest init scripts, live-grubsave 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 28 Jun 2021 20:30:43 -0400
+
+mx-remaster (21.04.03mx21) mx; urgency=medium
+
+  * rt kernel changes 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 10 Apr 2021 16:24:06 -0400
+
+mx-remaster (21.04.02mx21) mx; urgency=medium
+
+  * update live uefi files again 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 08 Apr 2021 18:22:43 -0400
+
+mx-remaster (21.04.01mx21) mx; urgency=medium
+
+  * updating live uefi files
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 02 Apr 2021 20:19:09 -0400
+
+mx-remaster (21.03.01mx21) mx; urgency=medium
+
+  * move live files out of script into package 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 13 Mar 2021 12:37:39 -0500
+
+mx-remaster (20.12.01) mx; urgency=medium
+
+  * add "whois" as a depend, localize-repo as a recommend 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 28 Dec 2020 16:08:07 -0500
+
+mx-remaster (20.11.01) mx; urgency=medium
+
+  * pick up installer idesk link file
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 27 Nov 2020 14:17:07 -0500
+
+mx-remaster (20.08.01) mx; urgency=medium
+
+  * add sddm.conf to default live files list
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 19 Aug 2020 21:24:59 -0400
+
+mx-remaster (20.05.01) mx; urgency=medium
+
+  * update 20_memtest86+ file (troublemaker) 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 13 May 2020 20:59:35 -0400
+
+mx-remaster (20.02.01) mx; urgency=medium
+
+  * update 20_memtest86+ file again
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 06 Feb 2020 19:08:07 -0500
+
+mx-remaster (20.01.01) mx; urgency=medium
+
+  * update 20_memetest86+ file
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 05 Jan 2020 21:20:19 -0500
+
+mx-remaster (19.11.04) mx; urgency=medium
+
+  * update grub files 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 24 Nov 2019 12:33:54 -0500
+
+mx-remaster (19.11.03) mx; urgency=medium
+
+  * new init-scripts 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 21 Nov 2019 18:19:57 -0500
+
+mx-remaster (19.11.02+1) mx; urgency=medium
+
+  *  persist-config (again)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 18 Nov 2019 20:41:37 -0500
+
+mx-remaster (19.11.02) mx; urgency=medium
+
+  * persist-save encryption fixes (fehlix antix-upstream)
+  * persist-config fix (part of security fixes) (fehlix bitjam-upstream) 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 12 Nov 2019 19:45:37 -0500
+
+mx-remaster (19.11.01) mx; urgency=medium
+
+  * update persist-config to limit accepted commands (BitJam)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 10 Nov 2019 16:06:13 -0500
+
+mx-remaster (19.07.06) mx; urgency=medium
+
+  * revised rc.local 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 22 Jul 2019 21:43:03 -0400
+
+mx-remaster (19.07.05) mx; urgency=medium
+
+  * remove xfce4-session-logout bypass 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 22 Jul 2019 21:03:54 -0400
+
+mx-remaster (19.07.04) mx; urgency=medium
+
+  * remove depend on mx-antix-libs (buster)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 20 Jul 2019 19:16:59 -0400
+
+mx-remaster (19.06.02) mx; urgency=medium
+
+  *  update from antiX upstream - save state files survive remaster
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 15 Jul 2019 21:25:21 -0400
+
+# Older entries have been removed from this changelog.
+# To read the complete changelog use `apt changelog mx-remaster`.
