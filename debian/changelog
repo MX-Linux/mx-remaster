@@ -1,8 +1,8 @@
-mx-remaster (26.10.01mx25) UNRELEASED; urgency=medium
+mx-remaster (26.10.01mx25) mx; urgency=medium
 
   * add support for custom live-files templates under /etc/live-files
 
- -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 05 Oct 2026 20:49:04 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 07 Oct 2026 20:51:54 -0400
 
 mx-remaster (26.06.03mx25) mx; urgency=medium
 
