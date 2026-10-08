@@ -16,9 +16,9 @@
 # 5) do a recursive umount
 # 6) Delete touched files and created directories from the *original* FS
 
-##For custom live-files under /etc/live-files, both the /etc/live-files/files
-# and /etc/live-files/general-files must exist for the template to be used in favor
-# of the the templates under /usr/share/live-files
+##For custom live-files under /etc/live-files, both the /etc/live-files/files/
+# and /etc/live-files/general-files/ folders must exist for the template to be used in favor
+# of the the templates under /usr/share/live-files/
 # if the /etc/live-files templates exist and are valid, files under /usr/share/live-files are ignored
 
 
