@@ -110,6 +110,7 @@ GENERAL_LIVE_FILE_LIST="
 /etc/default/*
 /etc/dhcp/dhclient.conf
 /etc/dnsmasq.conf
+/etc/hosts
 /etc/hostname
 /etc/init.d/ifplugd
 /etc/init.d/networking
