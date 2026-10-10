@@ -1,3 +1,9 @@
+mx-remaster (26.10.02mx25) mx; urgency=medium
+
+  * add hosts file to general-files
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 10 Oct 2026 13:35:05 -0400
+
 mx-remaster (26.10.01mx25) mx; urgency=medium
 
   * add support for custom live-files templates under /etc/live-files
