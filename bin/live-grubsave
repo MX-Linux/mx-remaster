@@ -4,7 +4,7 @@
 [ -z "$BASH_VERSION" ] && exec "$0" "$@"
 
 ME="$0"
-VERSION="260116-01"
+VERSION="261122-01"
 
 # PATH sanity
 PATH=/usr/local/bin:/usr/bin:/usr/sbin
@@ -121,6 +121,7 @@ fill_tables() {
         tz
         from
         hwclock
+        efi                 # efi=runtime / efi=noruntime (one value; "efi=" removes it)
         blab  blabel bootlabel
         bdev  bootdev
         bdir  bootdir
@@ -200,8 +201,20 @@ live_grubsave() {
     local config_dir=/live/config
     local config=$config_dir/initrd.out
 
-    [ -e $config                  ] || return # not a live system
-    [ -e $config_dir/remasterable ] || return # not remasterable
+    # Saving needs a live system booted from a writable LiveUSB; --print and
+    # --simulate also work elsewhere and only say that it cannot be saved.
+    local can_save=true
+    if [ ! -e $config ]; then # not a live system
+        can_save=false
+        echo "$ME: not a live system: boot parameters cannot be saved" >&2
+    elif [ ! -e $config_dir/remasterable ]; then # not remasterable
+        can_save=false
+        echo "$ME: booted from a read-only medium (ISO/DVD or a dd'ed ISO stick):" >&2
+        echo "$ME: boot parameters cannot be saved - use a LiveUSB made with Live USB Maker" >&2
+    fi
+    if ! $can_save && [[ ! $SIMULATE && ! $PRINT_CURRENT ]]; then
+        return 1
+    fi
 
     #local PROC_CMDLINE=$(cat /proc/cmdline)
     #local KERNEL_CONFIG_CMDLINE
@@ -328,6 +341,19 @@ live_grubsave() {
         [[ ${GRP[ftry]} == 0 ]] &&  GRP[ftry]=""
     fi
 
+    # efi=noruntime is the live GRUB default on 32-bit UEFI: don't save it
+    # there (the stick would boot 64-bit UEFI machines with it, too), unless
+    # given here on purpose (live-grubsave efi=noruntime); "extra+=efi=noruntime"
+    # also works
+    if [[ ${GRP[efi]} == noruntime ]] && [[ " $* " != *" efi=noruntime "* ]] &&
+       [[ $(cat /sys/firmware/efi/fw_platform_size 2>/dev/null) == 32 ]]; then
+        GRP[efi]=""
+        # quiet when it goes into extra on purpose (extra+=efi=noruntime)
+        # and with --print (it saves nothing)
+        [[ " $* " == *"=efi=noruntime"* || $PRINT_CURRENT ]] ||
+        echo "$ME: efi=noruntime not saved: it is the default on 32-bit UEFI" >&2
+    fi
+
     local -A trim # reset hash of trimmed parameter
     # trim extra - remove empty value par=
     local -a slm
@@ -369,7 +395,7 @@ live_grubsave() {
     local BOOT_DEV  BOOT_FSTYPE BOOT_MP BOOT_UUID
     local GRUB_DEV  GRUB_FSTYPE GRUB_MP GRUB_UUID
 
-    eval "$(grep -E '^(BIOS|BOOT)_(DEV|FSTYPE|MP|UUID)=' $config)"
+    [ -e $config ] && eval "$(grep -E '^(BIOS|BOOT)_(DEV|FSTYPE|MP|UUID)=' $config)"
 
     #------------------------------------------------------------------
     # checking BIOS_MP
@@ -457,23 +483,34 @@ live_grubsave() {
         fi
     fi
 
-    if ! $have_grub_mp; then
-        # nowhere to save grubenv
-        return
-    fi
-
     local grub_config="/boot/grub/config"
     local grub_env="/boot/grub/grubenv.cfg"
 
-    if [ ! -d $GRUB_MP$grub_config ]; then # not a live config
-        return
+    if ! $have_grub_mp || [ ! -d $GRUB_MP$grub_config ]; then
+        # nowhere to save grubenv (no GRUB boot device, or no live GRUB config)
+        echo "$ME: no GRUB boot device with a live GRUB configuration found" >&2
+        if [[ ! $SIMULATE ]]; then
+            if [[ ! $KEEP_MOUNTED ]] && $have_grub_mp && ! $grub_mp_was_mounted; then
+                mountpoint -q $GRUB_MP && umount $GRUB_MP
+            fi
+            return 1
+        fi
+        grub_env="(no target)$grub_env"
+    else
+        grub_env="${GRUB_MP}${grub_env}"
     fi
-
-    grub_env="${GRUB_MP}${grub_env}"
     echo "${GRUB_DEV:+[$GRUB_DEV] @ }$grub_env"
     if [[ $PRINT_CURRENT ]]; then
        if [[ -f $grub_env ]] ; then
           cat $grub_env
+       fi
+       # the live GRUB menu also loads GRUB's own environment block (load_env)
+       local grubenv_blk=${grub_env%.cfg}
+       if [[ -f $grubenv_blk ]]; then
+          echo
+          echo "#GRUB environment block, also loaded by the live GRUB menu:"
+          echo "#${GRUB_DEV:+[$GRUB_DEV] @ }$grubenv_blk"
+          grub-editenv "$grubenv_blk" list 2>/dev/null || echo "#(cannot read it: grub-editenv missing?)"
        fi
     else
 
@@ -485,9 +522,15 @@ live_grubsave() {
 #${GRUB_DEV:+[$GRUB_DEV] @ }$grub_env
 EOF
 
-        if [ "$RESET" = "true" ] && touch ${grub_env} 2>/dev/null; then
+        # --simulate only shows the result; a real save needs a writable file
+        local writable=true
+        if [[ ! $SIMULATE ]] && ! touch ${grub_env} 2>/dev/null; then
+            writable=false
+            echo "$ME: cannot write $grub_env (read-only file system?)" >&2
+        fi
+        if [ "$RESET" = "true" ] && $writable; then
             echo "$grub_head"   | teecat ${grub_env}
-        elif (( ${#GRP[@]} > 0 )) && touch ${grub_env} 2>/dev/null; then
+        elif (( ${#GRP[@]} > 0 )) && $writable; then
             echo "$grub_head"   | teecat ${grub_env}
             #echo "#${grub_env}" | teecat -a ${grub_env}
             for p in $( printf "%s\n" ${!GRP[@]} | sort ); do
