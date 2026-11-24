@@ -1,3 +1,13 @@
+mx-remaster (26.11.01mx25) mx; urgency=medium
+
+  [fehlix]
+  * efi= key value parameter.  efi=noruntime/runtime
+  * improvements to live-grubsave
+  * --print and --simulate - print shows what is in grubenv.cfg, simulate what would be saved
+  * 30_uefi-firmware updates to match latest in grub-files-mx (efi= parameter handling)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 23 Nov 2026 20:43:15 -0500
+
 mx-remaster (26.10.02mx25) mx; urgency=medium
 
   * add hosts file to general-files
