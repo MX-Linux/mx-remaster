@@ -4,7 +4,7 @@
 [ -z "$BASH_VERSION" ] && exec "$0" "$@"
 
 ME="$0"
-VERSION="261122-01"
+VERSION="261124-01"
 
 # PATH sanity
 PATH=/usr/local/bin:/usr/bin:/usr/sbin
@@ -339,19 +339,6 @@ live_grubsave() {
     if [[ ${GRP[fdev]} == select ]]; then
         GRP[fdev]=""
         [[ ${GRP[ftry]} == 0 ]] &&  GRP[ftry]=""
-    fi
-
-    # efi=noruntime is the live GRUB default on 32-bit UEFI: don't save it
-    # there (the stick would boot 64-bit UEFI machines with it, too), unless
-    # given here on purpose (live-grubsave efi=noruntime); "extra+=efi=noruntime"
-    # also works
-    if [[ ${GRP[efi]} == noruntime ]] && [[ " $* " != *" efi=noruntime "* ]] &&
-       [[ $(cat /sys/firmware/efi/fw_platform_size 2>/dev/null) == 32 ]]; then
-        GRP[efi]=""
-        # quiet when it goes into extra on purpose (extra+=efi=noruntime)
-        # and with --print (it saves nothing)
-        [[ " $* " == *"=efi=noruntime"* || $PRINT_CURRENT ]] ||
-        echo "$ME: efi=noruntime not saved: it is the default on 32-bit UEFI" >&2
     fi
 
     local -A trim # reset hash of trimmed parameter
